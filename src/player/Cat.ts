@@ -4,13 +4,14 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 import { RAPIER, type Physics, type RigidBody, type Collider } from '../physics/Physics';
 import { JumpFinder, arcPoint, jumpDuration, type JumpTarget } from './JumpFinder';
 import type { Audio } from '../core/Audio';
+import { CatAnimator, NATIVE_SPEED } from './CatAnimator';
 
 /** Collider: a small upright capsule. Cats are long, but a capsule keeps the KCC sane. */
 const RADIUS = 0.13;
 const HALF_H = 0.06;
 const FOOT_OFFSET = RADIUS + HALF_H + 0.01; // body centre above the feet
 
-const SPEED_WALK = 1.15;
+const SPEED_WALK = 0.75;
 const SPEED_RUN = 3.1;
 const ACCEL = 9;
 const TURN_RATE = 10;
@@ -50,6 +51,10 @@ export class Cat {
   private landImpact = 0;
   private stepAccum = 0;
   private lean = 0;
+  /** Skeletal clips, when the GLB has them (else the procedural squash below is all). */
+  private anim: CatAnimator | null = null;
+  private animState: CatState | null = null;
+  private sinceLand = 9;
 
   constructor(private physics: Physics, private audio: Audio, spawn: THREE.Vector3) {
     this.jumpFinder = new JumpFinder(physics);
@@ -117,6 +122,7 @@ export class Cat {
       if (mesh.isMesh) {
         mesh.castShadow = true;
         mesh.receiveShadow = true;
+        if ((mesh as THREE.SkinnedMesh).isSkinnedMesh) mesh.frustumCulled = false; // bind-pose bounds
         const mat = mesh.material as THREE.MeshStandardMaterial;
         if (mat.emissiveMap) mat.emissiveIntensity = 0.0; // Meshy bakes a junk emissive
         mat.envMapIntensity = 0.6;
@@ -124,6 +130,8 @@ export class Cat {
     });
     this.modelHolder.clear();
     this.modelHolder.add(holder);
+    this.anim = gltf.animations.length ? new CatAnimator(model, gltf.animations) : null;
+    this.animState = null;
   }
 
   get busy() {
@@ -248,7 +256,7 @@ export class Cat {
     }
 
     const grounded = this.kcc.computedGrounded();
-    if (grounded && this.velocity.y < 0) this.velocity.y = -0.5;
+    if (grounded && this.velocity.y < 0) this.velocity.y = -0.1; // snap-to-ground does the rest
     else this.velocity.y -= GRAVITY * dt;
 
     let move = this.velocity.clone().multiplyScalar(dt);
@@ -261,8 +269,11 @@ export class Cat {
     this.body.setNextKinematicTranslation(next);
     this.feet.set(next.x, next.y - FOOT_OFFSET, next.z);
 
-    // Kill velocity into walls so we don't keep pushing.
-    if (dt > 0) {
+    // Kill velocity into walls so we don't keep pushing. On slopes/steps the controller
+    // shortens the horizontal part (it went *up* instead) — that's not a wall, so keep the
+    // requested velocity, otherwise the speed decays frame by frame and the cat stalls.
+    const climbed = m.y > 1e-4; // actually rose (slope or autostep), not just "didn't sink"
+    if (dt > 0 && !climbed) {
       this.velocity.x = m.x / dt;
       this.velocity.z = m.z / dt;
     }
@@ -299,6 +310,53 @@ export class Cat {
     return new THREE.Vector3(0, move.y, 0);
   }
 
+  /** Drive the skeletal clips from the gameplay state. */
+  private animate(dt: number) {
+    const a = this.anim!;
+    this.sinceLand += dt;
+    if (this.state !== this.animState) {
+      if (this.state === 'crouch') a.restart('crouch', 0.12);
+      if (this.state === 'land') { a.restart('land'); this.sinceLand = 0; }
+      if (this.state === 'swipe') a.restart('swipe', 0.35);
+      if (this.state === 'scratch') a.restart('scratch', 1.0);
+      this.animState = this.state;
+    }
+    const sp = this.speed;
+    const walkN = NATIVE_SPEED.walk * CAT_LENGTH, runN = NATIVE_SPEED.run * CAT_LENGTH;
+    // Locomotion: idle → walk → run by speed, playback rate locked to ground speed.
+    const loco = () => {
+      const wr = THREE.MathUtils.clamp((sp - SPEED_WALK) / (SPEED_RUN * 0.8 - SPEED_WALK), 0, 1);
+      const moving = THREE.MathUtils.clamp(sp / 0.12, 0, 1);
+      a.setTimeScale('walk', THREE.MathUtils.clamp(sp / walkN, 0.5, 2.2));
+      a.setTimeScale('run', THREE.MathUtils.clamp(sp / runN, 0.6, 1.8));
+      return { idle: 1 - moving, walk: moving * (1 - wr), run: moving * wr };
+    };
+    let fade = 12;
+    switch (this.state) {
+      case 'crouch': a.setTargets({ crouch: 1 }); fade = 30; break;
+      case 'jump': {
+        const t = this.jump ? this.stateTime / this.jump.dur : 1;
+        a.scrubJump(t);
+        a.setTargets({ jump: 1 }); fade = 30;
+        break;
+      }
+      case 'fall': a.scrubJump(0.85); a.setTargets({ jump: 1 }); fade = 8; break;
+      case 'land': a.setTargets({ land: 1 }); fade = 30; break;
+      case 'swipe': a.setTargets({ swipe: 1 }); fade = 20; break;
+      case 'scratch': a.setTargets({ scratch: 1 }); fade = 10; break;
+      case 'nap': a.setTargets({ sleep: 1 }); fade = 3; break;
+      case 'eat': case 'sniff': a.setTargets({ idle: 1 }); break;
+      default: {
+        // Let the landing clip finish unless the player is already moving off.
+        const landLeft = 1 - this.sinceLand / 0.3;
+        const l = landLeft > 0 && sp < 0.3 ? landLeft : 0;
+        const w = loco();
+        a.setTargets({ ...w, land: l });
+      }
+    }
+    a.update(dt, fade);
+  }
+
   /** Render-rate: interpolate + procedural animation of the static mesh. */
   render(alpha: number, dt: number, time: number) {
     this.root.position.lerpVectors(this.prevFeet, this.feet, alpha);
@@ -325,6 +383,21 @@ export class Cat {
     const yawVel = angleDiff(this.prevYaw, this.yaw) / Math.max(dt, 1e-3);
     this.lean += (THREE.MathUtils.clamp(-yawVel * 0.04 * (0.4 + speedN), -0.25, 0.25) - this.lean) * Math.min(1, dt * 8);
     roll = this.lean;
+
+    if (this.anim) {
+      this.animate(dt);
+      // Clips carry the body motion; keep only the turn lean, a light landing squash
+      // and the head-down states that have no clip of their own.
+      const p = this.state === 'eat' ? 0.25 : this.state === 'sniff' ? 0.15 : 0;
+      if (this.landImpact > 0) {
+        sy = 1 - this.landImpact * 0.06;
+        this.landImpact = Math.max(0, this.landImpact - dt * 5);
+      }
+      v.position.y = 0;
+      v.scale.set(1 / Math.sqrt(sy), sy, 1);
+      v.rotation.set(p, 0, roll * 0.6);
+      return;
+    }
 
     if (this.state === 'crouch') { sy = 0.78; sz = 1.08; pitch = 0.12; }
     if (this.state === 'jump' && this.jump) {

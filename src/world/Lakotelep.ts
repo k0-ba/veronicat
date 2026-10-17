@@ -440,7 +440,7 @@ export class Lakotelep implements GameLevel {
     this.physics.addFixedBoxQ(center, V(p.x1 - p.x0, 0.2, len), q);
     for (let i = 0; i < 10; i++) {
       const z0 = p.z0 + i * 0.5;
-      this.box(p.x0, -3.3, z0, p.x1, -0.3 * (i + 1) + 0.0, z0 + 0.5, m.concrete, { collide: false });
+      this.box(p.x0, -3.3, z0, p.x1, -0.3 * (i + 0.5), z0 + 0.5, m.concrete, { collide: false });
     }
     // Tunnel floor + ceiling under the road.
     this.box(p.x0, -3.3, p.z1, p.x1, -3, 20, m.concrete);

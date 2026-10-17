@@ -125,7 +125,9 @@ export class JumpFinder {
     if (dh > JUMP.maxUp || dh < -JUMP.maxDown) return null;
     let kind: JumpTarget['kind'];
     if (dh > JUMP.minHeightDiff) kind = 'up';
-    else if (dh < -0.6) kind = 'down';
+    // Overlaps the cat's SAFE_DROP (0.45) on purpose: no height may be neither walkable
+    // nor jumpable, or the cat gets stuck on benches.
+    else if (dh < -0.35) kind = 'down';
     else {
       // Roughly level: only a jump if there's a gap between here and there.
       if (dist < 0.9 || !this.hasGap(feet, p)) return null;
@@ -137,8 +139,8 @@ export class JumpFinder {
     const angleCost = Math.abs(angle) / THREE.MathUtils.degToRad(JUMP.fanDeg);
     const distCost = dist / JUMP.maxDist;
     let score = 1 - angleCost * 0.9 - distCost * 0.55;
-    if (kind === 'up') score += 0.25;      // climbing is the main verb
-    if (kind === 'down') score -= 0.15 + Math.max(0, -dh - 2) * 0.05;
+    if (kind === 'up') score += 0.1;       // slight preference: climbing is the main verb
+    if (kind === 'down') score -= Math.max(0, -dh - 2.5) * 0.05;
     return { point: p.clone(), collider, dh, dist, score, kind };
   }
 
@@ -149,8 +151,7 @@ export class JumpFinder {
     const angleCost = angle / THREE.MathUtils.degToRad(JUMP.fanDeg);
     if (angleCost > 1.25 || dist > JUMP.maxDist * 1.1) return -Infinity;
     let score = 1 - angleCost * 0.9 - (dist / JUMP.maxDist) * 0.55;
-    if (t.kind === 'up') score += 0.25;
-    if (t.kind === 'down') score -= 0.15;
+    if (t.kind === 'up') score += 0.1;
     return score;
   }
 
@@ -164,7 +165,8 @@ export class JumpFinder {
     for (const [ox, oz] of [[f, 0], [-f, 0], [0, f], [0, -f]]) {
       const o = new THREE.Vector3(p.x + ox, p.y + 0.25, p.z + oz);
       const h = this.physics.ray(o, DOWN, 0.4, { ignoreDynamic: true });
-      if (h && Math.abs(h.point.y - p.y) < 0.06) support++;
+      // 0.1 tolerance: accepts stairs/ramps up to ~35°, still rejects edges and rails.
+      if (h && Math.abs(h.point.y - p.y) < 0.1) support++;
     }
     if (support < 3) return false;
     // Arc clearance, traced at chest height of the cat.
