@@ -66,14 +66,24 @@ export function applySkin(root: THREE.Object3D, id: string) {
   root.traverse((o) => {
     const mesh = o as THREE.Mesh;
     if (!mesh.isMesh) return;
-    const g = mesh.geometry;
+    let g = mesh.geometry;
+    if (!g.userData.skinMask && g.index && g.getAttribute('color')) {
+      // Per-face colours: un-share vertices so a face can be recoloured without its neighbours.
+      g = mesh.geometry = g.toNonIndexed();
+    }
     const mask: THREE.BufferAttribute | undefined = g.userData.skinMask ?? (g.getAttribute('color') as THREE.BufferAttribute | undefined);
     if (!mask) return;
     g.userData.skinMask = mask;
+    const pos = g.getAttribute('position');
     const out = new Float32Array(mask.count * 3);
     for (let i = 0; i < mask.count; i++) {
       let region = Math.round(mask.getX(i) * 32) as R;
       if (region === R.Eye) region = R.Face; // the eye faces are too big; the real eyes are separate meshes
+      // The bake gives the faces just below the ear base the inner-ear colour; they are forehead fur.
+      if (region === R.EarIn) {
+        const f = i - (i % 3);
+        if ((pos.getY(f) + pos.getY(f + 1) + pos.getY(f + 2)) / 3 < 0.25) region = R.Face;
+      }
       const stripe = mask.getY(i), noise = mask.getZ(i);
       let hex = skin.parts[region] ?? skin.coat;
       if (!(region in skin.parts)) {
@@ -104,14 +114,14 @@ export function applySkin(root: THREE.Object3D, id: string) {
 function eyesFor(mesh: THREE.SkinnedMesh, mask: THREE.BufferAttribute): THREE.MeshStandardMaterial | null {
   if (mesh.userData.iris !== undefined) return mesh.userData.iris;
   mesh.userData.iris = null;
-  const g = mesh.geometry, pos = g.getAttribute('position'), idx = g.index;
+  const pos = mesh.geometry.getAttribute('position');
   const bones = mesh.skeleton?.bones ?? [];
   const hi = bones.findIndex((b) => b.name === 'head');
-  if (!idx || hi < 0) return null;
+  if (hi < 0) return null;
   const sides = [-1, 1].map(() => ({ c: new THREE.Vector3(), n: new THREE.Vector3(), k: 0 }));
   const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
-  for (let t = 0; t < idx.count; t += 3) {
-    const i0 = idx.getX(t), i1 = idx.getX(t + 1), i2 = idx.getX(t + 2);
+  for (let t = 0; t + 2 < pos.count; t += 3) { // non-indexed: applySkin un-shares the vertices
+    const i0 = t, i1 = t + 1, i2 = t + 2;
     if (![i0, i1, i2].every((i) => Math.round(mask.getX(i) * 32) === R.Eye)) continue;
     a.fromBufferAttribute(pos, i0); b.fromBufferAttribute(pos, i1); c.fromBufferAttribute(pos, i2);
     const s = sides[a.x + b.x + c.x > 0 ? 1 : 0];
