@@ -153,7 +153,7 @@ export class Menu {
     const pick = div('cat-card-pick');
     card.append(this.preview.canvas, pick);
     list.append(card);
-    this.choice(pick, 'catSkin', [...SKIN_IDS, 'classic'].map((id): [string, string] => [id, t(`skin_${id}` as StringKey)]));
+    this.choice(pick, 'catSkin', SKIN_IDS.map((id): [string, string] => [id, t(`skin_${id}` as StringKey)]));
     this.rootFocus = this.ctls.length;
     if (this.mode === 'title') {
       this.button(list, t('play'), () => this.h.play(), true);

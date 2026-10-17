@@ -41,10 +41,10 @@ export class CatPreview {
     this.camera.lookAt(0, 0.14, 0);
   }
 
-  /** Show coat `id` ('classic' = the old model, which has no recolour). */
+  /** Show coat `id`. */
   setSkin(id: string) {
     this.skin = id;
-    const url = `${this.base}models/${id === 'classic' ? 'cat.glb' : 'cat_lowpoly.glb'}`;
+    const url = `${this.base}models/cat_lowpoly.glb`;
     if (url !== this.url) {
       this.url = url;
       void this.load(url);
@@ -91,7 +91,7 @@ export class CatPreview {
       this.mixer = new THREE.AnimationMixer(model);
       this.mixer.clipAction(idle).play();
     }
-    if (this.skin !== 'classic') applySkin(model, this.skin);
+    applySkin(model, this.skin);
   }
 
   private ensureRenderer() {

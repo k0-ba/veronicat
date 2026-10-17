@@ -160,17 +160,21 @@ async function boot() {
     ] : []),
   });
   menu.startAt = params.get('beat') ?? '';
-  // Cat model: the low-poly rig with recolourable coats, or the old Quaternius cat.
-  let catModel = '';
+  // `?beat=` is a one-shot jump: drop it from the address so a reload starts on the balcony again.
+  if (params.has('beat')) {
+    const q = new URLSearchParams(location.search);
+    q.delete('beat');
+    history.replaceState(null, '', location.pathname + (q.size ? `?${q}` : '') + location.hash);
+  }
+  // Cat model: the low-poly rig; coats are a recolour, so only the first call loads.
+  let catLoaded = false;
   const loadCat = async (skin: string) => {
-    const want = skin === 'classic' ? 'cat.glb' : 'cat_lowpoly.glb';
-    if (want === catModel) { cat.setSkin(skin); return; }
-    catModel = want;
+    if (catLoaded) { cat.setSkin(skin); return; }
+    catLoaded = true;
     try {
-      await cat.loadModel(`${import.meta.env.BASE_URL}models/${want}`, CAT_MODEL_YAW,
-        want === 'cat.glb' ? {} : { speeds: LOWPOLY_SPEED, skin });
+      await cat.loadModel(`${import.meta.env.BASE_URL}models/cat_lowpoly.glb`, CAT_MODEL_YAW, { speeds: LOWPOLY_SPEED, skin });
     } catch (e) {
-      console.warn(`${want} failed, using placeholder`, e);
+      console.warn('cat_lowpoly.glb failed, using placeholder', e);
     }
   };
   await loadCat(settings.data.catSkin);

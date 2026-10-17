@@ -69,7 +69,6 @@ const STRINGS = {
   skin_tuxedo: { hu: 'Szmokingos', en: 'Tuxedo' },
   skin_calico: { hu: 'Háromszínű', en: 'Calico' },
   skin_siamese: { hu: 'Sziámi', en: 'Siamese' },
-  skin_classic: { hu: 'Régi modell', en: 'Old model' },
   masterVolume: { hu: 'Fő hangerő', en: 'Master volume' },
   musicVolume: { hu: 'Zene', en: 'Music' },
   ambienceVolume: { hu: 'Környezet/Eső', en: 'Ambience/Rain' },

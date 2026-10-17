@@ -17,7 +17,7 @@ export interface SettingsData {
   pixelRatio: number;     // cap on devicePixelRatio
   rain: number;           // 0..1 share of the rain streaks drawn
   lang: Lang;
-  catSkin: string;        // a key of SKINS (src/player/catSkins.ts) or 'classic' (old model)
+  catSkin: string;        // a key of SKINS (src/player/catSkins.ts)
 }
 
 export const DEFAULT_SETTINGS: SettingsData = {
@@ -55,6 +55,7 @@ export class Settings {
       for (const k of Object.keys(DEFAULT_SETTINGS) as Array<keyof SettingsData>) {
         if (typeof parsed?.[k] === typeof DEFAULT_SETTINGS[k]) (out as any)[k] = parsed[k];
       }
+      if (out.catSkin === 'classic') delete out.catSkin; // the old model is gone
       return out;
     } catch {
       return {};
