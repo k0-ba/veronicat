@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Build and (only when asked) push to Cloudflare (Workers static assets — the successor
-# of Pages; config in wrangler.jsonc). No server code, just dist/.
+# Build and (only when asked) push to Cloudflare Pages (project "veronicat", config in
+# wrangler.jsonc). No server code, just dist/.
 #
 #   ./scripts/deploy.sh            # build + check, then stop — look at it first
-#   ./scripts/deploy.sh --deploy   # the same, then wrangler deploy
+#   ./scripts/deploy.sh --deploy   # the same, then wrangler pages deploy (production)
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -32,6 +32,7 @@ if [[ $DEPLOY -eq 0 ]]; then
   exit 0
 fi
 
-npx --yes wrangler@4 deploy
+# --branch main = production; any other branch only makes a preview hostname.
+npx --yes wrangler@4 pages deploy dist --project-name veronicat --branch main --commit-dirty=true
 echo
-echo "==> https://veronicat.holoesthesia.workers.dev/"
+echo "==> https://veronicat.pages.dev/"

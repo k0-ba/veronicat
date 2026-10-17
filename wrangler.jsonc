@@ -1,8 +1,9 @@
 {
-  // Cloudflare Workers static assets (the successor of Pages). No server code: the
-  // Worker only serves dist/. _headers in public/ is honoured.
+  // Cloudflare Pages (classic, no Functions): serves dist/ at https://veronicat.pages.dev/.
+  // _headers in public/ is honoured. The old veronicat.<account>.workers.dev Worker only
+  // redirects here now — see tools/redirect-worker/.
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "veronicat",
   "compatibility_date": "2026-10-12",
-  "assets": { "directory": "dist" }
+  "pages_build_output_dir": "dist"
 }

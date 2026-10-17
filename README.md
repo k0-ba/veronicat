@@ -5,7 +5,8 @@ Füst, Bori macskája egy esős októberi estén a Csillag-lakótelepen — 1. �
 2. Garázssor, 3. Buszmegálló (Gábor), vége az aluljárónál. Terv: [docs/VERTICAL_SLICE.md](docs/VERTICAL_SLICE.md).
 A v0.1 sikátor-greybox: `?level=alley`.
 
-- Élő: https://veronicat.holoesthesia.workers.dev/
+- Élő: https://veronicat.pages.dev/
+- Repó: https://github.com/k0-ba/veronicat (privát)
 - Lokálisan: `npm install && npm run dev` → http://localhost:5181/
 - Technikai leírás: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 

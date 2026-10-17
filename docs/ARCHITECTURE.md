@@ -12,7 +12,7 @@ cserélhetők legyenek anélkül, hogy a mozgást/kamerát újra kellene írni.
 | Fizika | Rapier 3D (WASM) | gyors, determinisztikus, kész *kinematic character controller* |
 | Build | Vite + TypeScript | gyors HMR, statikus kimenet |
 | Asset | GLB + meshopt + WebP (`@gltf-transform/cli`) | 24 MB → 620 KB a cicán |
-| Host | **Cloudflare** (Workers static assets, a Pages utódja) | korlátlan ingyenes sávszél (3D assetnél ez számít), globális CDN, Access-szel privát link. A Vercel Hobby 100 GB/hó sávszélnél áll meg és nem kereskedelmi. |
+| Host | **Cloudflare Pages** (`veronicat.pages.dev`, `./scripts/deploy.sh --deploy`) | korlátlan ingyenes sávszél (3D assetnél ez számít), globális CDN, Access-szel privát link. A Vercel Hobby 100 GB/hó sávszélnél áll meg és nem kereskedelmi. |
 
 ## Mit vettünk át a Stray-ből (technikailag)
 
