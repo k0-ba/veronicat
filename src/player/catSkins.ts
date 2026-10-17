@@ -72,7 +72,8 @@ export function applySkin(root: THREE.Object3D, id: string) {
     g.userData.skinMask = mask;
     const out = new Float32Array(mask.count * 3);
     for (let i = 0; i < mask.count; i++) {
-      const region = Math.round(mask.getX(i) * 32) as R;
+      let region = Math.round(mask.getX(i) * 32) as R;
+      if (region === R.Eye) region = R.Face; // the eye faces are too big; the real eyes are separate meshes
       const stripe = mask.getY(i), noise = mask.getZ(i);
       let hex = skin.parts[region] ?? skin.coat;
       if (!(region in skin.parts)) {
@@ -86,9 +87,71 @@ export function applySkin(root: THREE.Object3D, id: string) {
       out[i * 3] = tmp.r; out[i * 3 + 1] = tmp.g; out[i * 3 + 2] = tmp.b;
     }
     g.setAttribute('color', new THREE.BufferAttribute(out, 3));
+    if ((mesh as THREE.SkinnedMesh).isSkinnedMesh) eyesFor(mesh as THREE.SkinnedMesh, mask)?.color.setHex(skin.parts[R.Eye] ?? 0xc9b23c);
     const mat = mesh.material as THREE.MeshStandardMaterial;
     mat.vertexColors = true;
     mat.color.set(0xffffff);
     mat.needsUpdate = true;
   });
+}
+
+/**
+ * Small almond eyes with a slit pupil, parented to the head bone. They sit where the
+ * mask's Eye faces are (a fan of four big triangles per side, far too large to read as
+ * eyes), facing out along those faces' normal. Built once per mesh; returns the iris
+ * material so a skin can recolour it.
+ */
+function eyesFor(mesh: THREE.SkinnedMesh, mask: THREE.BufferAttribute): THREE.MeshStandardMaterial | null {
+  if (mesh.userData.iris !== undefined) return mesh.userData.iris;
+  mesh.userData.iris = null;
+  const g = mesh.geometry, pos = g.getAttribute('position'), idx = g.index;
+  const bones = mesh.skeleton?.bones ?? [];
+  const hi = bones.findIndex((b) => b.name === 'head');
+  if (!idx || hi < 0) return null;
+  const sides = [-1, 1].map(() => ({ c: new THREE.Vector3(), n: new THREE.Vector3(), k: 0 }));
+  const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
+  for (let t = 0; t < idx.count; t += 3) {
+    const i0 = idx.getX(t), i1 = idx.getX(t + 1), i2 = idx.getX(t + 2);
+    if (![i0, i1, i2].every((i) => Math.round(mask.getX(i) * 32) === R.Eye)) continue;
+    a.fromBufferAttribute(pos, i0); b.fromBufferAttribute(pos, i1); c.fromBufferAttribute(pos, i2);
+    const s = sides[a.x + b.x + c.x > 0 ? 1 : 0];
+    s.c.add(a).add(b).add(c); s.k += 3;
+    s.n.add(c.clone().sub(b).cross(a.clone().sub(b)).normalize());
+  }
+  if (!sides.every((s) => s.k)) return null;
+  // Almond: two arcs meeting at pointed corners.
+  const W = 0.0095, H = 0.0062;
+  const shape = new THREE.Shape().moveTo(-W, 0)
+    .quadraticCurveTo(0, H * 2, W, 0).quadraticCurveTo(0, -H * 2, -W, 0);
+  const almond = new THREE.ShapeGeometry(shape, 4);
+  const slit = new THREE.CircleGeometry(1, 10).scale(0.0018, H * 0.95, 1);
+  const iris = new THREE.MeshStandardMaterial({ color: 0xc9b23c, roughness: 0.25, metalness: 0,
+    emissive: 0x2a2208, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 });
+  const pupil = new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.2,
+    polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 });
+  const head = bones[hi];
+  const toBone = mesh.skeleton.boneInverses[hi].clone().multiply(mesh.bindMatrix);
+  const rot = new THREE.Matrix4().extractRotation(toBone);
+  for (const s of sides) {
+    const side = Math.sign(s.c.x) || 1;
+    const p = s.c.divideScalar(s.k);
+    const n = s.n.normalize();
+    p.addScaledVector(n, 0.0012);
+    const z = n.clone().applyMatrix4(rot).normalize();
+    const up = new THREE.Vector3(0, 1, 0).applyMatrix4(rot);
+    const x = up.clone().cross(z).normalize(), y = z.clone().cross(x);
+    const eye = new THREE.Group();
+    eye.matrix.makeBasis(x, y, z).setPosition(p.applyMatrix4(toBone));
+    eye.matrixAutoUpdate = false;
+    const ir = new THREE.Mesh(almond, iris);
+    ir.rotation.z = side * 0.18; // outer corner slightly up
+    const pu = new THREE.Mesh(slit, pupil);
+    pu.position.z = 0.0003;
+    ir.add(pu);
+    eye.add(ir);
+    eye.name = 'eye';
+    head.add(eye);
+  }
+  mesh.userData.iris = iris;
+  return iris;
 }
