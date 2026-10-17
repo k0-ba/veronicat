@@ -289,6 +289,78 @@ export function stencil(kind: StencilKind, color: string, size = 0.7, arrowAngle
   return new THREE.Mesh(new THREE.PlaneGeometry(size, size), sprayMat(tex, color.toLowerCase().startsWith('#ff') ? 0.12 : 0));
 }
 
+// ───────────── balcony clutter ─────────────
+
+const boxMesh = (w: number, h: number, d: number, mat: THREE.Material, x = 0, y = 0, z = 0) => {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+  m.position.set(x, y + h / 2, z);
+  m.castShadow = true;
+  return m;
+};
+const clutterMats = new Map<number, THREE.MeshStandardMaterial>();
+const cmat = (color: number, roughness = 0.8, metalness = 0) => {
+  const key = color * 7 + Math.round(roughness * 10) + metalness;
+  let m = clutterMats.get(key);
+  if (!m) clutterMats.set(key, m = new THREE.MeshStandardMaterial({ color, roughness, metalness }));
+  return m;
+};
+
+/**
+ * Balcony flower box, `w` long (along x), origin at its bottom centre. `dead` = autumn
+ * leftovers: dry brown stalks instead of geraniums.
+ */
+export function planter(w = 0.7, dead = false, boxColor = 0xa0522d) {
+  const g = new THREE.Group();
+  g.add(boxMesh(w, 0.17, 0.2, cmat(boxColor, 0.9)));
+  g.add(boxMesh(w - 0.04, 0.02, 0.16, cmat(0x2a1f17, 1), 0, 0.15));
+  const leaf = new THREE.IcosahedronGeometry(0.055, 0);
+  const n = Math.max(2, Math.round(w / 0.14));
+  for (let i = 0; i < n; i++) {
+    const x = -w / 2 + (i + 0.5) * (w / n);
+    const bush = new THREE.Mesh(leaf, cmat(dead ? 0x5a4630 : 0x3f5f2e, 1));
+    bush.position.set(x, 0.2 + (i % 2) * 0.02, (i % 3 - 1) * 0.03);
+    bush.scale.set(1, dead ? 1.6 : 0.9, 1);
+    g.add(bush);
+    if (!dead && i % 2 === 0) {
+      const bloom = new THREE.Mesh(leaf, cmat([0xd8323a, 0xe86a9a, 0xf0ece0][i % 3], 0.9));
+      bloom.scale.setScalar(0.55);
+      bloom.position.set(x + 0.02, 0.27, 0);
+      g.add(bloom);
+    }
+  }
+  return g;
+}
+
+/** Plastic garden chair (white, green or brown), origin on the floor under the seat, facing +z. */
+export function chair(color = 0xe8e4da) {
+  const g = new THREE.Group();
+  const m = cmat(color, 0.55);
+  g.add(boxMesh(0.42, 0.04, 0.4, m, 0, 0.4));
+  g.add(boxMesh(0.42, 0.42, 0.04, m, 0, 0.44, -0.19));
+  for (const [x, z] of [[-0.18, -0.17], [0.18, -0.17], [-0.18, 0.17], [0.18, 0.17]]) g.add(boxMesh(0.035, 0.4, 0.035, m, x, 0, z));
+  for (const x of [-0.2, 0.2]) g.add(boxMesh(0.03, 0.03, 0.34, m, x, 0.6, 0));
+  return g;
+}
+
+/** Tin ashtray with a few butts; origin on its base. */
+export function ashtray() {
+  const g = new THREE.Group();
+  const tin = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.055, 0.035, 10), cmat(0x6d6f73, 0.35, 0.8));
+  tin.position.y = 0.0175;
+  g.add(tin);
+  const ash = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.055, 0.004, 10), cmat(0x3a3836, 1));
+  ash.position.y = 0.031;
+  g.add(ash);
+  const butt = new THREE.CylinderGeometry(0.006, 0.006, 0.04, 5);
+  for (let i = 0; i < 3; i++) {
+    const b = new THREE.Mesh(butt, cmat(i === 1 ? 0xd9a05a : 0xeae6dc, 0.9));
+    b.position.set(Math.cos(i * 2.1) * 0.025, 0.04, Math.sin(i * 2.1) * 0.025);
+    b.rotation.set(1.2, i * 2.1, 0.3);
+    g.add(b);
+  }
+  return g;
+}
+
 // ───────────── buildings ─────────────
 
 export interface PanelBlockOpts {

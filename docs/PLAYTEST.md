@@ -10,7 +10,7 @@ feljut a **Csillag térre**, és megtalálja Borit a lezárt metrólejáró rác
 | # | Hol | Mit csinálsz | Mi történik |
 |---|---|---|---|
 | 1 | Bori erkélye (2. emelet) | Végighallgatod Judit telefonját | Az ablak elsötétül, kezdődik az ereszkedés |
-| 2 | Erkélyek | Szomszéd erkély → alsó erkély → kukatároló teteje → udvar | Leérve: „keresd a sárga jelet” |
+| 2 | Erkélyek | Az erkélyek beton **oldalszegélyére fel lehet ugrani** → át a szomszéd szegélyére → szomszéd erkély → alsó erkély → kukatároló teteje (vagy le az udvarra) | Leérve: „keresd a sárga jelet” |
 | 3 | Kukatároló déli fala | **1. jel** megszaglászása (E) | „2 — Garázssor” kártya |
 | 4 | Garázssor **déli vége**, az út felőli falon | **2. jel** megszaglászása | „3 — Buszmegálló” kártya, jön a busz |
 | 5 | Buszmegálló | Gábor leszáll → nyávogj (Q) vagy menj közel → dörgölőzz (E) → idd meg a tejet (E) | Gábor elindul haza |

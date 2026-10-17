@@ -5,7 +5,7 @@ import type { Audio } from '../core/Audio';
 import type { Cat } from '../player/Cat';
 import type { GameLevel, EndSummary } from './types';
 import { worldUVBox } from './materials';
-import { panelTexture, asphaltTexture, corrugatedTexture, catSign, graffiti, sprayTag, stencil, type StencilKind, panelBlock, streetLamp, tree, leafLitter, bus } from './props';
+import { panelTexture, asphaltTexture, corrugatedTexture, catSign, graffiti, sprayTag, stencil, planter, chair, ashtray, type StencilKind, panelBlock, streetLamp, tree, leafLitter, bus } from './props';
 import { Human } from '../npc/Human';
 import { Dog } from '../npc/Dog';
 import { Sky, MOON_DIR } from './Sky';
@@ -338,29 +338,52 @@ export class Lakotelep implements GameLevel {
     this.add(this.ilonkaWindow);
     this.box(-14.3, 0, FACADE_Z, -12.7, 0.9, FACADE_Z + 0.42, m.concrete);
 
-    // Balconies (route): slab + railings. Railing colliders only where the route must not pass.
-    const balcony = (x0: number, x1: number, y: number, rails: { w?: boolean; e?: boolean; front?: boolean }) => {
-      const d = 1.25;
-      this.box(x0, y - 0.15, FACADE_Z, x1, y, FACADE_Z + d, m.concrete);
-      const railMat = m.metal;
-      const zf = FACADE_Z + d - 0.04;
-      if (rails.front !== false) this.box(x0, y, zf, x1, y + 0.95, zf + 0.04, railMat);
-      if (rails.w) this.box(x0, y, FACADE_Z, x0 + 0.04, y + 0.95, FACADE_Z + d, railMat);
-      if (rails.e) this.box(x1 - 0.04, y, FACADE_Z, x1, y + 0.95, FACADE_Z + d, railMat);
-      // Hanging laundry / flower box flavour.
+    // Balconies (route): slab, concrete side walls (30 cm, wide enough for the cat to jump
+    // up on and walk along) and a painted front railing between them.
+    const SIDE = 0.3, RAIL_H = 0.9;
+    const balcony = (x0: number, x1: number, y: number, o: { front?: boolean; collide?: boolean; rail?: THREE.Material; d?: number } = {}) => {
+      const d = o.d ?? 1.25;
+      const collide = o.collide ?? true;
+      this.box(x0, y - 0.15, FACADE_Z, x1, y, FACADE_Z + d, m.concrete, { collide });
+      this.box(x0, y, FACADE_Z, x0 + SIDE, y + RAIL_H, FACADE_Z + d, m.concrete, { collide });
+      this.box(x1 - SIDE, y, FACADE_Z, x1, y + RAIL_H, FACADE_Z + d, m.concrete, { collide });
+      if (o.front !== false) {
+        const rail = o.rail ?? m.metal, zf = FACADE_Z + d - 0.04;
+        this.box(x0 + SIDE, y + RAIL_H - 0.05, zf, x1 - SIDE, y + RAIL_H, zf + 0.04, rail, { collide });
+        this.box(x0 + SIDE, y + 0.06, zf, x1 - SIDE, y + 0.1, zf + 0.04, rail, { collide: false });
+        for (let x = x0 + SIDE + 0.12; x < x1 - SIDE; x += 0.12) this.box(x - 0.012, y + 0.1, zf + 0.01, x + 0.012, y + RAIL_H - 0.05, zf + 0.03, rail, { collide: false });
+        // Invisible bar fill so nothing slips between the balusters.
+        if (collide) this.physics.addFixedBox(V((x0 + x1) / 2, y + RAIL_H / 2, zf + 0.02), V(x1 - x0 - 2 * SIDE, RAIL_H, 0.04));
+      }
       return d;
     };
-    balcony(BORI_BALCONY.x0, BORI_BALCONY.x1, BORI_BALCONY.y, { w: true });
-    balcony(NEIGHBOUR_BALCONY.x0, NEIGHBOUR_BALCONY.x1, NEIGHBOUR_BALCONY.y, {});
-    balcony(LOW_BALCONY.x0, LOW_BALCONY.x1, LOW_BALCONY.y, { e: true, front: false });
-    // Flower box on the low balcony's open edge (visual hint: you can go here).
-    this.box(LOW_BALCONY.x0 + 0.2, LOW_BALCONY.y, FACADE_Z + 1.12, LOW_BALCONY.x0 + 0.9, LOW_BALCONY.y + 0.18, FACADE_Z + 1.25, m.brick, { collide: false });
-    // Decorative balconies elsewhere (no colliders; out of reach).
-    for (const [c, f] of [[1, 1], [2, 3], [4, 2], [8, 4], [10, 2], [11, 3], [3, 4], [9, 1]]) {
-      const x = -22.5 + c * 3;
-      this.box(x - 1.2, f * 3 - 0.15, FACADE_Z, x + 1.2, f * 3, FACADE_Z + 1.2, m.concrete, { collide: false });
-      this.box(x - 1.2, f * 3, FACADE_Z + 1.16, x + 1.2, f * 3 + 0.95, FACADE_Z + 1.2, m.metal, { collide: false });
-    }
+    const put = (o: THREE.Object3D, x: number, y: number, z: number, ry = 0) => { o.position.set(x, y, z); o.rotation.y = ry; this.add(o); return o; };
+    const B = BORI_BALCONY, NB = NEIGHBOUR_BALCONY, LB = LOW_BALCONY;
+    balcony(B.x0, B.x1, B.y);
+    balcony(NB.x0, NB.x1, NB.y, { rail: new THREE.MeshStandardMaterial({ color: 0x3f6b4a, roughness: 0.6, metalness: 0.3 }) });
+    balcony(LB.x0, LB.x1, LB.y, { front: false, rail: new THREE.MeshStandardMaterial({ color: 0x8a8f96, roughness: 0.5, metalness: 0.4 }) });
+    // Bori's: Judit's chair and ashtray in the back corner, geraniums hung outside the rail.
+    put(chair(), B.x0 + SIDE + 0.26, B.y, FACADE_Z + 0.32, 0.5);
+    put(ashtray(), B.x0 + SIDE / 2, B.y + RAIL_H, FACADE_Z + 1.05);
+    put(planter(1.1), (B.x0 + B.x1) / 2 + 0.2, B.y + RAIL_H - 0.3, FACADE_Z + 1.36);
+    // Neighbour: dried-out box on the floor, green chair.
+    put(planter(0.6, true, 0x5d6b4a), NB.x0 + SIDE + 0.4, NB.y, FACADE_Z + 0.16);
+    put(chair(0x4f7a52), NB.x1 - SIDE - 0.3, NB.y, FACADE_Z + 0.35, -0.4);
+    // Low balcony: flower box on the open edge (visual hint: you can go here), an ashtray on the wall.
+    put(planter(0.7), LB.x0 + SIDE + 0.45, LB.y, FACADE_Z + 1.1);
+    put(ashtray(), LB.x1 - SIDE / 2, LB.y + RAIL_H, FACADE_Z + 0.9);
+    // Decorative balconies elsewhere (no colliders; out of reach): paint, cladding and clutter vary.
+    const paints = [0x5d5a52, 0x3f6b4a, 0x3d5a80, 0x8a3b2e, 0xd8d4c8, 0x7a6a3a].map((c) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.6, metalness: 0.3 }));
+    const cladding = [0x9db0a0, 0xc9b98a, 0x8aa0b8].map((c) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.5, map: corrugatedTexture(), transparent: true, opacity: 0.92 }));
+    const decor: Array<[number, number]> = [[1, 1], [2, 3], [4, 2], [8, 4], [10, 2], [11, 3], [3, 4], [9, 1], [0, 2], [5, 4], [1, 3], [11, 1]];
+    decor.forEach(([c, f], i) => {
+      const x = -22.5 + c * 3, y = f * 3, r = (k: number) => ((i * 7919 + k * 104729) % 97) / 97;
+      balcony(x - 1.2, x + 1.2, y, { collide: false, rail: paints[i % paints.length], d: 1.2 });
+      if (r(1) < 0.35) this.box(x - 0.9, y + 0.1, FACADE_Z + 1.2, x + 0.9, y + RAIL_H - 0.05, FACADE_Z + 1.22, cladding[i % 3], { collide: false, shadow: false });
+      if (r(2) < 0.6) put(planter(0.5 + r(3) * 0.8, r(4) < 0.3), x + (r(5) - 0.5) * 0.6, y + RAIL_H - 0.3, FACADE_Z + 1.33);
+      if (r(6) < 0.55) put(chair([0xe8e4da, 0x4f7a52, 0x6b4a32][i % 3]), x + (r(7) < 0.5 ? -0.6 : 0.6), y, FACADE_Z + 0.35, (r(8) - 0.5) * 1.2);
+      if (r(9) < 0.5) put(ashtray(), x + (r(10) < 0.5 ? -1.05 : 1.05), y + RAIL_H, FACADE_Z + 0.9);
+    });
     // Laundry on Bori's neighbour's line.
     const cloth = [0xb84a4a, 0xe8e2d0, 0x4a6ab8];
     cloth.forEach((c, i) => {
