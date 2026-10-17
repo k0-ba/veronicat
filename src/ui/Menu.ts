@@ -3,6 +3,7 @@ import { t, setLang, type StringKey } from './i18n';
 import type { StoryNode } from '../world/storyTree';
 import { renderStoryTree } from './StoryTree';
 import { SKIN_IDS } from '../player/catSkins';
+import { CatPreview } from './CatPreview';
 
 /**
  * Title + pause menu with Settings / Controls / Credits pages, built into #title.
@@ -51,6 +52,10 @@ export class Menu {
   /** Chosen story start point (title menu), read by main on Play. */
   startAt = '';
   private relayout: (() => void) | null = null;
+  /** Live coat preview on the root page. */
+  private preview = new CatPreview(import.meta.env.BASE_URL);
+  /** Where focus lands on the root page (Play / Resume, below the coat picker). */
+  private rootFocus = 0;
 
   constructor(private el: HTMLElement, private settings: Settings, private h: MenuHandlers) {
     this.panel = el.querySelector('.panel')!;
@@ -58,7 +63,9 @@ export class Menu {
     // Esc that Input just recorded instead of racing it.
     addEventListener('keydown', (e) => this.onKey(e));
     addEventListener('resize', () => this.relayout?.());
+    this.preview.setSkin(settings.data.catSkin);
     settings.onChange((s, key) => {
+      if (key === 'catSkin' || key === null) this.preview.setSkin(s.catSkin);
       if (key === 'lang' || key === null) {
         setLang(s.lang);
         this.render(this.focusIdx);
@@ -91,6 +98,7 @@ export class Menu {
 
   close() {
     this.isOpen = false;
+    this.preview.active = false;
     this.el.hidden = true;
     (document.activeElement as HTMLElement | null)?.blur?.();
   }
@@ -115,7 +123,10 @@ export class Menu {
 
     const body = div('menu-body');
     p.append(body);
-    if (this.page === 'root') this.buildRoot(body);
+    if (this.page === 'root') {
+      this.buildRoot(body);
+      if (focus === 0) focus = this.rootFocus;
+    }
     else if (this.page === 'settings') this.buildSettings(body);
     else if (this.page === 'controls') this.buildControls(body);
     else if (this.page === 'story') focus = this.buildStory(body, focus);
@@ -125,6 +136,7 @@ export class Menu {
     p.scrollTop = 0;
     // buildStory sets it; TS can't see that through the call.
     (this.relayout as (() => void) | null)?.();
+    this.preview.active = this.isOpen && this.page === 'root' && this.ready;
     this.setFocus(Math.min(focus, this.ctls.length - 1), this.page === 'story');
   }
 
@@ -136,6 +148,13 @@ export class Menu {
       return;
     }
     this.rootPages = [];
+    // Coat picker first: a live portrait of the cat beside the ‹ coat › row.
+    const card = div('cat-card');
+    const pick = div('cat-card-pick');
+    card.append(this.preview.canvas, pick);
+    list.append(card);
+    this.choice(pick, 'catSkin', [...SKIN_IDS, 'classic'].map((id): [string, string] => [id, t(`skin_${id}` as StringKey)]));
+    this.rootFocus = this.ctls.length;
     if (this.mode === 'title') {
       this.button(list, t('play'), () => this.h.play(), true);
       const lv = this.h.levels;
@@ -172,9 +191,6 @@ export class Menu {
     this.choice(body, 'shadows', [[true, t('on')], [false, t('off')]]);
     this.choice(body, 'pixelRatio', PIXEL_STEPS.map((v): [number, string] => [v, `${v}×`]));
     this.choice(body, 'rain', RAIN_STEPS.map(([v, k]): [number, string] => [v, t(k)]));
-
-    body.append(div('set-sec', t('secCat')));
-    this.choice(body, 'catSkin', [...SKIN_IDS, 'classic'].map((id): [string, string] => [id, t(`skin_${id}` as StringKey)]));
 
     body.append(div('set-sec', t('secLanguage')));
     this.choice(body, 'lang', [['hu', 'Magyar'], ['en', 'English']]);

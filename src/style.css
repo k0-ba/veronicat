@@ -438,3 +438,27 @@ body.scent #vignette { opacity: 1; }
 .story-meta .story-badge { white-space: nowrap; }
 .menu-list .menu-option { margin: 0; padding: 11px 16px; border-color: var(--line); border-radius: 12px; }
 .menu-list .menu-option.is-focus { border-color: rgba(255, 179, 107, 0.7); }
+
+/* Coat picker card on the root menu: live cat portrait + ‹ coat › row. */
+.cat-card {
+  display: grid;
+  grid-template-columns: 148px 1fr;
+  align-items: center;
+  gap: 4px 14px;
+  margin-bottom: 6px;
+  padding: 6px 12px 6px 6px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: radial-gradient(ellipse at 22% 70%, rgba(255, 210, 31, 0.14), rgba(12, 14, 20, 0) 60%), rgba(255, 255, 255, 0.03);
+}
+.cat-preview-canvas { display: block; width: 148px; height: 118px; }
+.cat-card-pick { min-width: 0; }
+.cat-card .set-row { margin: 0; padding: 10px 12px; grid-template-columns: 1fr; gap: 4px; }
+.cat-card .set-label { font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-dim); }
+.cat-card .set-val { font: 700 19px 'Rubik', system-ui, sans-serif; justify-content: space-between; }
+.cat-card .set-choice .set-val { display: flex; }
+.cat-card .set-row.is-focus .set-val span { color: var(--spray); }
+@media (max-width: 420px) {
+  .cat-card { grid-template-columns: 112px 1fr; }
+  .cat-preview-canvas { width: 112px; height: 96px; }
+}
