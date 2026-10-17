@@ -55,7 +55,7 @@ src/
   gameplay/Scent.ts       szagmód: deszaturálás + sárga szagnyom-részecskék
   world/materials.ts      greybox anyagkészlet (1 m-es rács), neon táblák
   world/Rain.ts           eső
-public/models/cat.glb     optimalizált Meshy cica (statikus, rig nélkül)
+public/models/cat.glb     Quaternius CC0 low-poly cica, 20 csontos skin + 9 klip (CatAnimator.ts)
 ```
 
 ## Ismert korlátok / következő lépések

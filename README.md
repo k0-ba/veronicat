@@ -12,9 +12,15 @@ A v0.1 sikátor-greybox: `?level=alley`.
 Vezérlés: WASD séta · Shift futás · egér kamera · Space ugrás a kijelölt pontra ·
 E interakció · Q nyávogás · F szagmód (tartsd) · R újrakezdés · `` ` `` debug. Gamepad is megy.
 
-Eredeti cica asset: `cat-in-motion-3d-model-free.zip` (Meshy AI) → `public/models/cat.glb`:
+Cica asset (rigelt, animált): Quaternius „Animal Pack Vol.2” — **CC0**
+(<https://opengameart.org/content/animated-animales-low-poly>). A klipeket
+(idle, walk, run, crouch, jump, land, swipe, scratch, sleep) a
+`tools/rig/quaternius_cat.py` szerzi a cica saját IK rigjén, majd FK-ra bake-eli:
 
 ```bash
-npx @gltf-transform/cli optimize source.glb public/models/cat.glb \
-  --simplify-ratio 0.08 --simplify-error 0.002 --texture-compress webp --texture-size 1024 --compress meshopt
+blender -b --factory-startup "art_source/quaternius_animals2/x/Animal Pack Vol.2 by @Quaternius/Blends/Cat.blend" \
+  -P tools/rig/quaternius_cat.py -- public/models/cat.glb [preview_dir]
 ```
+
+(A korábbi Meshy AI cica auto-rigje — `tools/rig/rig_build.py` — félbehagyva: a
+mesh lépés közbeni pózban van, a lábak lendítése szétszakítja a bőrt.)

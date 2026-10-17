@@ -1,6 +1,25 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "veronicat-dev", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev"], "port": 5181 }
+    {
+      "name": "veronicat-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
+      "port": 5181
+    },
+    {
+      "name": "veronicat-dev-5182",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "--port",
+        "5182",
+        "--strictPort"
+      ],
+      "port": 5182
+    }
   ]
 }
