@@ -148,6 +148,23 @@ bokája kificamodott, fázik, a telefonja lemerült, a víz már bokáig ér.
 | **Bocsánat** | Dani kulcstartója | Szotyi Dani elé ejti a kulcstartót. Dani megérti, felébreszti a többieket, és bevallják, hol a lány. Robi nyitja ki a rácsot, amit ő zárt be. | Felelősségvállalás |
 | **Alap** | egyik sem | Szotyi a buszmegálló melletti telefonfülkénél / Ilonka néni ablakánál addig nyávog, amíg Ilonka néni hívja a rendőrséget. | — (biztonsági háló, hogy nincs kudarc) |
 
+### Játszható változat (slice v0.3)
+
+A slice a teljes fát így tömöríti — a „döntés” már ma is játszható:
+
+| Fejezet | Idő | Mi történik a játékban |
+|---|---|---|
+| 1 — Üres ablak | 20:40 | Judit telefonja, ereszkedés, 1. jel; Ilonka néni (mellékszál) |
+| 2 — Garázssor | 20:52 | kihallgatás, Dani kulcstartója, 2. jel |
+| 3 — Buszmegálló | 21:15 | Gábor, tej, *opcionális* hazakísérés → Gábor bizalma |
+| 4 — Aluljáró | 22:00 | **Csont** (öreg fekete kutya, fél szeme hályogos) ráugat → ládára menekülés; **Marika** felismeri Szotyit („a kis festő macskája”), **Laci** „Kis Ördög”-nek hívja (régen Szotyit így etette), **Tomi** (fiatal, csendes) a kutya gazdája. Mellékszál: Csont labdája az újságosbódé tetején → az aluljáró bizalma |
+| 5 — Csillag tér | 23:10 | fel a nyugati lépcsőn; **eláll az eső, kitisztul a csillagos ég**. A Kórus (galambok) a téri újságosbódén — kenyérrel lecsalogathatók, négy rövid, kórusszerű sor. 4. jel a metró mellett. **Bori** a lezárt metrólejáró rácsa mögött, kificamodott bokával |
+| 6 — Kit hozol? | 23:40 | a cica visszamegy valakiért, aki bízik benne, és a nyomában vezeti a rácshoz |
+
+A **Tetők / Patkányüldözés / Csatorna / Állomás** fejezetek a teljes játék részei maradnak;
+a slice-ban az Állomás helyett a Csillag téri metrólejáró a csúcspont. Az Alap befejezés neve
+a játékban: **Ilonka néni** (ő hívja a rendőrséget).
+
 ### Epilógus — Az új fal
 *Egy hét múlva, napsütés.* Bori bekötött bokával, Judit mellette. A lakótelep egyik tűzfalán
 új, nagy falfestmény: egy szürke cica egy sárga lánnyal, körülöttük — a befejezéstől függően —

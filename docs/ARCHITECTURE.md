@@ -1,4 +1,4 @@
-# Veronicat — technikai váz (vertical slice v0.2)
+# Veronicat — technikai váz (vertical slice v0.3)
 
 Ez a dokumentum a **technológiai** alapot írja le. A világ, a történet és a látvány a
 design dokumentumból jön (Veronika, art director) — a kód úgy van felépítve, hogy ezek
@@ -52,7 +52,7 @@ src/
   camera/FollowCamera.ts  harmadik személyű kamera ütközéssel
   gameplay/Interactions.ts interakció-regiszter
   world/types.ts          GameLevel interfész (minden pálya ezt valósítja meg)
-  world/Lakotelep.ts      v0.2 slice: Csillag-lakótelep, 1–3. fejezet + sztori-beatek
+  world/Lakotelep.ts      v0.3 slice: Csillag-lakótelep, 1–6. fejezet, 4 befejezés
   world/props.ts          panelház, lámpa, fa, busz, Bori-féle cicajel, graffiti
   world/Level.ts          v0.1 greybox sikátor (?level=alley)
   story/Script.ts         korutin-futtató játékidőn (wait / until / say), reset-biztos

@@ -5,7 +5,7 @@ import type { Lang } from '../core/Settings';
  * prompts only. Story dialogue stays Hungarian until it gets its own pass.
  */
 const STRINGS = {
-  kicker: { hu: 'vertical slice · v0.2 · Csillag-lakótelep', en: 'vertical slice · v0.2 · Csillag housing estate' },
+  kicker: { hu: 'vertical slice · v0.3 · Csillag-lakótelep', en: 'vertical slice · v0.3 · Csillag housing estate' },
   lede: {
     hu: 'Bori nem jött haza. A macskája tudja, merre ment — csak követnie kell a sárga jeleket.',
     en: "Bori didn't come home. Her cat knows where she went — it only has to follow the yellow marks.",
@@ -28,6 +28,9 @@ const STRINGS = {
   startGarage: { hu: '2 — Garázssor', en: '2 — Garages' },
   startBus: { hu: '3 — Buszmegálló', en: '3 — Bus stop' },
   startUnderpass: { hu: 'Az aluljáró előtt', en: 'Before the underpass' },
+  startHall: { hu: 'Lent az aluljáróban', en: 'Down in the underpass' },
+  startSquare: { hu: 'Csillag tér', en: 'Csillag Square' },
+  startFetch: { hu: 'Kit hozol? (a rácsnál)', en: 'Who do you bring? (at the grille)' },
   storyLede: {
     hu: 'Szotyi útja eddig. A bejárt ágak kiemelve; ami előtted van, csak sejlik.',
     en: "Szotyi's path so far. Visited paths are highlighted; what lies ahead is only a hint.",

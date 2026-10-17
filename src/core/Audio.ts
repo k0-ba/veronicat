@@ -73,8 +73,60 @@ export class Audio {
     hp.frequency.value = 300;
     const g = c.createGain();
     // Was 0.09: too present under dialogue. Bed level now, with its own slider on top.
-    g.gain.value = 0.035;
+    g.gain.value = 0.035 * this.rainLevel;
+    this.rainGain = g;
     src.connect(hp).connect(lp).connect(g).connect(this.ambience);
+  }
+  private rainGain: GainNode | null = null;
+  private rainLevel = 1;
+
+  /** Weather / shelter: 1 = full rain on the street, 0 = dry (underground, cleared sky). */
+  setRain(level: number) {
+    if (Math.abs(level - this.rainLevel) < 0.01) return;
+    this.rainLevel = level;
+    if (this.ctx && this.rainGain) this.rainGain.gain.setTargetAtTime(0.035 * level, this.ctx.currentTime, 0.4);
+  }
+
+  /** Big old dog: two-tone woof. */
+  bark(times = 2) {
+    const c = this.ctx;
+    if (!c) return;
+    for (let k = 0; k < times; k++) {
+      const t = c.currentTime + k * 0.32;
+      const o = c.createOscillator();
+      o.type = 'sawtooth';
+      o.frequency.setValueAtTime(260, t);
+      o.frequency.exponentialRampToValueAtTime(120, t + 0.16);
+      const lp = c.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = 900;
+      const g = c.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.35, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+      o.connect(lp).connect(g).connect(this.sfx);
+      o.start(t);
+      o.stop(t + 0.22);
+    }
+  }
+
+  /** Pigeons taking off: a burst of short noise flaps. */
+  flutter() {
+    const c = this.ctx;
+    if (!c) return;
+    for (let k = 0; k < 9; k++) {
+      const t = c.currentTime + k * 0.06 + Math.random() * 0.04;
+      const src = c.createBufferSource();
+      src.buffer = this.noiseBuf;
+      src.start(t, Math.random(), 0.06);
+      const bp = c.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.value = 700 + Math.random() * 600;
+      const g = c.createGain();
+      g.gain.setValueAtTime(0.18, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+      src.connect(bp).connect(g).connect(this.sfx);
+    }
   }
 
   meow(pitch = 1) {

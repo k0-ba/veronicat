@@ -160,6 +160,138 @@ export function graffiti(text: string, color: string, w = 2, h = 0.8) {
   }));
 }
 
+/** Spray overspray: a soft halo of dots around whatever was just painted. */
+function overspray(g: CanvasRenderingContext2D, w: number, h: number, color: string, n: number) {
+  g.save();
+  g.fillStyle = color;
+  for (let i = 0; i < n; i++) {
+    g.globalAlpha = 0.15 + Math.random() * 0.35;
+    g.beginPath();
+    g.arc(Math.random() * w, Math.random() * h, 0.6 + Math.random() * 1.6, 0, Math.PI * 2);
+    g.fill();
+  }
+  g.restore();
+}
+
+function drips(g: CanvasRenderingContext2D, color: string, pts: Array<[number, number]>, maxLen: number) {
+  g.save();
+  g.strokeStyle = g.fillStyle = color;
+  g.lineCap = 'round';
+  for (const [x, y] of pts) {
+    if (Math.random() < 0.45) continue;
+    const l = maxLen * (0.3 + Math.random() * 0.7);
+    g.lineWidth = 2 + Math.random() * 3;
+    g.beginPath(); g.moveTo(x, y); g.lineTo(x + (Math.random() - 0.5) * 2, y + l); g.stroke();
+    g.beginPath(); g.arc(x, y + l + 1, g.lineWidth * 0.8, 0, Math.PI * 2); g.fill();
+  }
+  g.restore();
+}
+
+const sprayMat = (tex: THREE.Texture, glow = 0) => new THREE.MeshStandardMaterial({
+  map: tex, transparent: true, roughness: 0.8, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2,
+  ...(glow ? { emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: glow } : {}),
+});
+
+/**
+ * Hand-sprayed tag: jittered, leaning letters with a fat dark outline, a drop shadow,
+ * a lighter core, overspray and drips. `bubble` = rounded throw-up letters.
+ */
+export function tag(text: string, color: string, w = 2, h = 0.7, bubble = false) {
+  const W = 1024, H = Math.round(1024 * (h / w));
+  const tex = canvasTex(W, H, (g) => {
+    const size = H * (bubble ? 0.62 : 0.66);
+    g.font = bubble ? `900 ${size}px "Arial Rounded MT Bold", "Trebuchet MS", system-ui, sans-serif`
+      : `italic 900 ${size}px Impact, "Arial Black", system-ui, sans-serif`;
+    g.textBaseline = 'middle';
+    g.lineJoin = 'round';
+    const letters = [...text];
+    const widths = letters.map((c) => g.measureText(c).width * 0.92);
+    const total = widths.reduce((a, b) => a + b, 0);
+    const scale = Math.min(1, (W * 0.88) / total);
+    let x = (W - total * scale) / 2;
+    const placed: Array<{ c: string; x: number; y: number; r: number; s: number }> = [];
+    letters.forEach((c, i) => {
+      const s = scale * (0.86 + Math.random() * 0.3);
+      placed.push({ c, x: x + (widths[i] * scale) / 2, y: H / 2 + (Math.random() - 0.5) * H * 0.14 - i * H * 0.012, r: (Math.random() - 0.5) * 0.32 - 0.06, s });
+      x += widths[i] * scale;
+    });
+    const each = (fn: (p: typeof placed[number]) => void) => placed.forEach((p) => {
+      g.save(); g.translate(p.x, p.y); g.rotate(p.r); g.scale(p.s, p.s); g.textAlign = 'center'; fn(p); g.restore();
+    });
+    overspray(g, W, H, color, 260);
+    // Drop shadow, outline, fill, highlight.
+    each((p) => { g.fillStyle = 'rgba(0,0,0,0.75)'; g.fillText(p.c, 10, 10); });
+    each((p) => { g.lineWidth = bubble ? 26 : 18; g.strokeStyle = bubble ? color : '#0c0c0e'; g.strokeText(p.c, 0, 0); });
+    each((p) => {
+      const grad = g.createLinearGradient(0, -size / 2, 0, size / 2);
+      grad.addColorStop(0, bubble ? '#f4f0e6' : '#ffffff');
+      grad.addColorStop(0.35, bubble ? '#f4f0e6' : color);
+      grad.addColorStop(1, bubble ? '#cfc8b8' : color);
+      g.fillStyle = grad;
+      g.shadowColor = color; g.shadowBlur = 14;
+      g.fillText(p.c, 0, 0);
+    });
+    drips(g, bubble ? color : '#0c0c0e', placed.map((p) => [p.x + (Math.random() - 0.5) * 20, p.y + size * 0.36] as [number, number]), H * 0.3);
+  });
+  return new THREE.Mesh(new THREE.PlaneGeometry(w, h), sprayMat(tex));
+}
+
+export type StencilKind = 'dog' | 'skull' | 'eye' | 'crown' | 'smiley' | 'star' | 'arrow' | 'heart' | 'bird' | 'bolt';
+
+/**
+ * Decoy street art — sprayed doodles in the same loose hand as Bori's sign but never a
+ * three-stroke cat head, so the sign has to be read, not just spotted by colour.
+ */
+export function stencil(kind: StencilKind, color: string, size = 0.7, arrowAngle = 0) {
+  const tex = canvasTex(256, 256, (g) => {
+    overspray(g, 256, 256, color, 70);
+    g.strokeStyle = g.fillStyle = color;
+    g.lineCap = g.lineJoin = 'round';
+    g.lineWidth = 11;
+    g.shadowColor = color; g.shadowBlur = 8;
+    const P = (...pts: number[]) => { g.beginPath(); g.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) g.lineTo(pts[i], pts[i + 1]); };
+    const O = (x: number, y: number, r: number, fill = false) => { g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); fill ? g.fill() : g.stroke(); };
+    switch (kind) {
+      case 'dog': // floppy ears, long snout — Csont, as the Kapucnisok see him
+        O(128, 120, 54); P(80, 90, 52, 160, 78, 170); g.stroke(); P(176, 90, 204, 160, 178, 170); g.stroke();
+        O(108, 112, 6, true); O(150, 112, 6, true); O(128, 150, 12, true); break;
+      case 'skull':
+        O(128, 108, 60); P(96, 160, 96, 196, 160, 196, 160, 160); g.stroke();
+        O(104, 108, 14, true); O(152, 108, 14, true); P(112, 196, 112, 180); g.stroke(); P(144, 196, 144, 180); g.stroke(); break;
+      case 'eye':
+        g.beginPath(); g.moveTo(36, 128); g.quadraticCurveTo(128, 40, 220, 128); g.quadraticCurveTo(128, 216, 36, 128); g.stroke();
+        O(128, 128, 26, true); break;
+      case 'crown':
+        P(52, 180, 40, 84, 90, 134, 128, 64, 166, 134, 216, 84, 204, 180); g.closePath(); g.stroke(); break;
+      case 'smiley':
+        O(128, 128, 80); O(100, 108, 9, true); O(156, 108, 9, true);
+        g.beginPath(); g.arc(128, 132, 46, 0.2, Math.PI - 0.2); g.stroke(); break;
+      case 'star': {
+        g.beginPath();
+        for (let k = 0; k <= 10; k++) {
+          const a = -Math.PI / 2 + (k * Math.PI) / 5, r = k % 2 ? 36 : 92;
+          k ? g.lineTo(128 + Math.cos(a) * r, 132 + Math.sin(a) * r) : g.moveTo(128 + Math.cos(a) * r, 132 + Math.sin(a) * r);
+        }
+        g.stroke(); break;
+      }
+      case 'arrow': {
+        g.save(); g.translate(128, 128); g.rotate(arrowAngle);
+        P(-90, 0, 80, 0); g.stroke(); P(44, -36, 84, 0, 44, 36); g.stroke(); g.restore(); break;
+      }
+      case 'heart':
+        g.beginPath(); g.moveTo(128, 200); g.bezierCurveTo(20, 130, 60, 40, 128, 92); g.bezierCurveTo(196, 40, 236, 130, 128, 200); g.stroke();
+        g.lineWidth = 7; g.font = '900 44px Impact, system-ui'; g.textAlign = 'center'; g.fillText('K+D', 128, 140); break;
+      case 'bird': // the Kórus
+        P(40, 120, 90, 96, 128, 124, 166, 96, 216, 120); g.stroke(); O(128, 132, 10, true); break;
+      case 'bolt':
+        P(150, 36, 90, 136, 140, 136, 104, 220); g.stroke(); break;
+    }
+    g.shadowBlur = 0;
+    drips(g, color, [[90, 190], [128, 200], [170, 186]], 50);
+  });
+  return new THREE.Mesh(new THREE.PlaneGeometry(size, size), sprayMat(tex, color.toLowerCase().startsWith('#ff') ? 0.12 : 0));
+}
+
 // ───────────── buildings ─────────────
 
 export interface PanelBlockOpts {
@@ -189,7 +321,8 @@ export function panelBlock(o: PanelBlockOpts) {
   const band = new THREE.MeshStandardMaterial({ color: 0x8d8a84, roughness: 0.9 });
   for (let f = 1; f <= o.floors; f++) {
     const b = new THREE.Mesh(new THREE.BoxGeometry(w + 0.06, 0.12, d + 0.06), band);
-    b.position.set(shell.position.x, f * fh - 0.06, shell.position.z);
+    // Top band sits a hair above the roof so the two top faces don't z-fight.
+    b.position.set(shell.position.x, f * fh - (f === o.floors ? 0.05 : 0.06), shell.position.z);
     group.add(b);
   }
 
@@ -216,7 +349,7 @@ export function panelBlock(o: PanelBlockOpts) {
       }
     }
   }
-  const win = new THREE.InstancedMesh(new THREE.PlaneGeometry(1.4, 1.35), new THREE.MeshBasicMaterial({ color: 0xffffff }), transforms.length);
+  const win = new THREE.InstancedMesh(new THREE.PlaneGeometry(1.4, 1.35), new THREE.MeshBasicMaterial({ color: 0xffffff, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 }), transforms.length);
   transforms.forEach((m, i) => { win.setMatrixAt(i, m); win.setColorAt(i, colors[i]); });
   group.add(win);
   return { group, height: h };
@@ -250,21 +383,116 @@ export function streetLamp(x: number, z: number, armDir: THREE.Vector3, opts: { 
   return { group: g, light };
 }
 
+// Plane-tree bark: the camouflage patches of a London plane (cream, olive, grey-brown).
+let barkTex: THREE.Texture | null = null;
+function planeBark() {
+  barkTex ??= canvasTex(256, 256, (g) => {
+    g.fillStyle = '#6f6a52';
+    g.fillRect(0, 0, 256, 256);
+    const cols = ['#b8b08a', '#8a8a62', '#cfc6a0', '#5a5444', '#9a9270'];
+    for (let i = 0; i < 70; i++) {
+      g.fillStyle = cols[i % cols.length];
+      g.beginPath();
+      const x = Math.random() * 256, y = Math.random() * 256, r = 10 + Math.random() * 26;
+      for (let k = 0; k < 9; k++) {
+        const a = (k / 9) * Math.PI * 2, rr = r * (0.6 + Math.random() * 0.5);
+        g[k ? 'lineTo' : 'moveTo'](x + Math.cos(a) * rr, y + Math.sin(a) * rr * 1.4);
+      }
+      g.closePath();
+      g.fill();
+    }
+  });
+  return barkTex;
+}
+
+const AUTUMN = [0xc98a1e, 0xd9a52a, 0xb5651d, 0x9c4a1a, 0xe0b84a, 0x7a6a24, 0x8a3a18];
+const autumnLeaf = new Map<number, THREE.MeshStandardMaterial>();
+const leafMat = (c: number) => {
+  if (!autumnLeaf.has(c)) autumnLeaf.set(c, new THREE.MeshStandardMaterial({ color: c, roughness: 0.9, flatShading: true }));
+  return autumnLeaf.get(c)!;
+};
+
+/** Autumn plane tree (platán): mottled trunk, forked limbs, a ragged yellow-brown crown. */
 export function tree(x: number, z: number, s = 1) {
   const g = new THREE.Group();
-  const bark = new THREE.MeshStandardMaterial({ color: 0x2b241e, roughness: 1 });
-  const leaf = new THREE.MeshStandardMaterial({ color: 0x2d3a26, roughness: 1 });
-  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.12 * s, 0.18 * s, 3.2 * s, 7), bark);
-  trunk.position.set(x, 1.6 * s, z);
+  g.position.set(x, 0, z);
+  const bark = new THREE.MeshStandardMaterial({ map: planeBark(), roughness: 0.95 });
+  const trunkH = 3.4 * s;
+  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.16 * s, 0.24 * s, trunkH, 9), bark);
+  trunk.position.y = trunkH / 2;
   g.add(trunk);
-  for (let i = 0; i < 4; i++) {
-    const b = new THREE.Mesh(new THREE.IcosahedronGeometry((1.1 + Math.random() * 0.6) * s, 0), leaf);
-    b.position.set(x + (Math.random() - 0.5) * 1.4 * s, (3.3 + Math.random() * 1.4) * s, z + (Math.random() - 0.5) * 1.4 * s);
-    b.rotation.set(Math.random(), Math.random(), Math.random());
-    g.add(b);
+  const tips: THREE.Vector3[] = [];
+  const limbs = 3 + Math.floor(Math.random() * 2);
+  for (let i = 0; i < limbs; i++) {
+    const a = (i / limbs) * Math.PI * 2 + Math.random() * 0.8;
+    const tilt = 0.45 + Math.random() * 0.35;
+    const len = (1.8 + Math.random() * 0.9) * s;
+    const limb = new THREE.Mesh(new THREE.CylinderGeometry(0.06 * s, 0.12 * s, len, 6), bark);
+    const dir = new THREE.Vector3(Math.sin(a) * Math.sin(tilt), Math.cos(tilt), Math.cos(a) * Math.sin(tilt));
+    const base = new THREE.Vector3(0, trunkH - 0.3 * s, 0);
+    limb.position.copy(base).addScaledVector(dir, len / 2);
+    limb.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+    g.add(limb);
+    tips.push(base.clone().addScaledVector(dir, len));
+  }
+  // Crown: clumps around the limb tips, mixed autumn colours, a few already bare gaps.
+  for (const t of tips) {
+    const n = 2 + Math.floor(Math.random() * 2);
+    for (let k = 0; k < n; k++) {
+      const c = AUTUMN[Math.floor(Math.random() * AUTUMN.length)];
+      const b = new THREE.Mesh(new THREE.IcosahedronGeometry((0.65 + Math.random() * 0.5) * s, 0), leafMat(c));
+      b.position.set(t.x + (Math.random() - 0.5) * 1.1 * s, t.y + (Math.random() - 0.3) * 0.8 * s, t.z + (Math.random() - 0.5) * 1.1 * s);
+      b.rotation.set(Math.random() * 3, Math.random() * 3, Math.random() * 3);
+      b.scale.y = 0.75;
+      g.add(b);
+    }
   }
   g.traverse((o) => { o.castShadow = true; o.receiveShadow = true; });
   return g;
+}
+
+/**
+ * Fallen leaves: one InstancedMesh for every loose leaf and heaped pile in the level.
+ * spots: [x, z, radius, pile?, groundY?] — piles are mounds, the rest lies flat.
+ */
+export function leafLitter(spots: Array<[number, number, number, boolean?, number?]>) {
+  // Five-lobed plane leaf outline (+ a stem), ~16 cm across.
+  const leaf = new THREE.Shape();
+  const lobes = 5, R = 0.08, r = 0.06;
+  for (let k = 0; k <= lobes * 2; k++) {
+    const a = Math.PI / 2 + ((k / (lobes * 2)) * Math.PI * 2 - Math.PI) * 0.82;
+    const rad = k % 2 ? r : R * (k === lobes ? 1 : 0.85);
+    k ? leaf.lineTo(Math.cos(a) * rad, Math.sin(a) * rad) : leaf.moveTo(Math.cos(a) * rad, Math.sin(a) * rad);
+  }
+  leaf.lineTo(0.004, -0.02); leaf.lineTo(0.004, -0.06); leaf.lineTo(-0.004, -0.06); leaf.lineTo(-0.004, -0.02);
+  leaf.closePath();
+  const geo = new THREE.ShapeGeometry(leaf);
+  geo.rotateX(-Math.PI / 2);
+  const mat = new THREE.MeshStandardMaterial({ roughness: 0.9, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -6, polygonOffsetUnits: -4 });
+  const count = spots.reduce((n, [, , r, pile]) => n + Math.round((pile ? 260 : 45) * r * r), 0);
+  const mesh = new THREE.InstancedMesh(geo, mat, count);
+  const m = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), p = new THREE.Vector3(), sc = new THREE.Vector3();
+  const col = new THREE.Color();
+  let i = 0;
+  for (const [x, z, r, pile, y0 = 0] of spots) {
+    const n = Math.round((pile ? 260 : 45) * r * r);
+    // Ragged, wind-blown outline: lobes around the centre, thinning out at the edge.
+    const ph1 = Math.random() * 6, ph2 = Math.random() * 6, wind = Math.random() * Math.PI * 2;
+    for (let k = 0; k < n; k++) {
+      const a = Math.random() * Math.PI * 2;
+      const edge = r * (0.75 + 0.25 * Math.sin(3 * a + ph1) + 0.15 * Math.sin(5 * a + ph2) + 0.35 * Math.max(0, Math.cos(a - wind)));
+      const d = (pile ? Math.sqrt(Math.random()) : Math.random() ** 0.8) * edge;
+      const h = pile ? 0.38 * r * Math.max(0, 1 - (d / edge) ** 2) * Math.random() : 0;
+      p.set(x + Math.cos(a) * d, y0 + 0.05 + h, z + Math.sin(a) * d * (pile ? 0.8 : 1));
+      e.set(pile ? (Math.random() - 0.5) * 1.2 : (Math.random() - 0.5) * 0.15, Math.random() * Math.PI * 2, pile ? (Math.random() - 0.5) * 1.2 : 0);
+      sc.setScalar(0.8 + Math.random() * 0.7);
+      mesh.setMatrixAt(i, m.compose(p, q.setFromEuler(e), sc));
+      mesh.setColorAt(i, col.setHex(AUTUMN[Math.floor(Math.random() * AUTUMN.length)]).multiplyScalar(0.55 + Math.random() * 0.45));
+      i++;
+    }
+  }
+  mesh.receiveShadow = true;
+  return mesh;
 }
 
 /** The last bus: a box with lit windows, headlights and a door side. */

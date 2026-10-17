@@ -20,6 +20,8 @@ export interface GameLevel {
   objectiveHTML(): string;
   /** Polyline the scent mode reveals (current story target), or null. */
   scentTrail?(): THREE.Vector3[] | null;
+  /** Rain where the cat is: 1 = full, 0 = none (under a roof, underground, cleared sky). */
+  weather?(): number;
   /** Things that glow brighter in scent mode (Bori's signs). */
   setScentMode?(on: boolean): void;
 }

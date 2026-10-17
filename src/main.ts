@@ -155,7 +155,8 @@ async function boot() {
     },
     starts: () => (level instanceof Lakotelep ? [
       ['', t('startBeginning')], ['courtyard', t('startCourtyard')], ['garage', t('startGarage')],
-      ['bus', t('startBus')], ['underpass', t('startUnderpass')],
+      ['bus', t('startBus')], ['underpass', t('startUnderpass')], ['hall', t('startHall')],
+      ['square', t('startSquare')], ['fetch', t('startFetch')],
     ] : []),
   });
   menu.startAt = params.get('beat') ?? '';
@@ -336,6 +337,9 @@ async function boot() {
       idleLook: (performance.now() - input.lastLookTime) / 1000,
       airborne: cat.state === 'jump' || cat.state === 'fall',
     });
+    const wet = level.weather?.() ?? 1;
+    rain.setDensity(settings.data.rain * wet);
+    audio.setRain(wet);
     rain.update(dt, camera.position);
     // Camera squeezed against a wall: hide the cat rather than fill the screen with fur.
     cat.root.visible = camera.position.distanceTo(cat.root.position) > 0.42;

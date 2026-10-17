@@ -2,14 +2,15 @@ import type { Lakotelep } from './Lakotelep';
 import type { StoryNodeDef } from './storyTree';
 
 /**
- * Story tree of the Csillag-lakótelep slice. Chapters 1–3 read the level's live flags
+ * Story tree of the Csillag-lakótelep slice. Chapters 1–6 and the four endings read the level's live flags
  * and stage; the rest is the player tree from docs/worldbuilding/NARRATIVA.md
  * (playable: false) so the player sees where the story is heading.
  * Order matters: a node's parents must come before it.
  */
-type L = Pick<Lakotelep, 'flags' | 'stage'>;
+type L = Pick<Lakotelep, 'flags' | 'stage' | 'ending'>;
 
-const STAGES: Array<Lakotelep['stage']> = ['intro', 'descend', 'courtyard', 'garage', 'toStop', 'gabor', 'escort', 'toUnderpass', 'end'];
+const STAGES: Array<Lakotelep['stage']> = ['intro', 'descend', 'courtyard', 'garage', 'toStop', 'gabor', 'escort', 'toUnderpass',
+  'hall', 'camp', 'toSquare', 'square', 'fetch', 'rescue', 'end'];
 const past = (l: L, stage: Lakotelep['stage']) => STAGES.indexOf(l.stage) > STAGES.indexOf(stage);
 const at = (l: L, ...stages: Array<Lakotelep['stage']>) => stages.includes(l.stage);
 
@@ -43,38 +44,60 @@ export const LAKOTELEP_STORY: StoryNodeDef<L>[] = [
       { label: 'Gábor észreveszi Szotyit', done: (l) => l.flags.gaborNoticed },
       { label: 'Dörgölőzés', done: (l) => l.flags.gaborRubbed },
       { label: 'Egy kupak tej', done: (l) => l.flags.milk },
-      { label: 'Hazakíséred Gábort', side: true, done: (l) => l.flags.gaborHome },
-      { label: 'Harmadik jel: lefelé', done: (l) => at(l, 'end') },
+      { label: 'Hazakíséred Gábort', side: true, done: (l) => l.flags.gaborTrust },
+      { label: 'Harmadik jel: lefelé', done: (l) => past(l, 'toUnderpass') },
     ],
   },
   {
-    id: 'ch4', title: '4 — Aluljáró', sub: '22:00 · a slice vége', kind: 'chapter', parents: ['ch2', 'ch3'], playable: false,
+    id: 'ch4', title: '4 — Aluljáró', sub: '22:00', kind: 'chapter', parents: ['ch3'], playable: true,
+    current: (l) => at(l, 'hall', 'camp'),
     beats: [
-      { label: 'Csont, Marika, Laci', done: () => false },
-      { label: 'Csont labdája (bizalom: aluljáró)', side: true, done: () => false },
+      { label: 'Csont, a fekete kutya', done: (l) => l.flags.csontMet },
+      { label: 'Marika, Laci, Tomi a tűznél', done: (l) => l.flags.camp },
+      { label: 'Csont labdája (bizalom: aluljáró)', side: true, done: (l) => l.flags.ballGiven },
+      { label: 'Fel a nyugati lépcsőn', done: (l) => past(l, 'toSquare') },
     ],
   },
-  { id: 'ch5', title: '5 — Tetők: a Kórus', sub: '23:00', kind: 'chapter', parents: ['ch4'], playable: false },
-  { id: 'ch6', title: '6 — Patkányüldözés', sub: '0:00', kind: 'choice', parents: ['ch5'], playable: false },
-  { id: 'ch6a', title: 'Elkapja és elengedi', sub: 'Kanóc tartozik', kind: 'branch', parents: ['ch6'], playable: false },
-  { id: 'ch6b', title: 'Elszalasztja', sub: 'Szotyi kimenti Kanócot', kind: 'branch', parents: ['ch6'], playable: false },
-  { id: 'ch7', title: '7 — Csatorna', sub: '1:00', kind: 'chapter', parents: ['ch6a', 'ch6b'], playable: false },
-  { id: 'ch8', title: '8 — Csillag tér állomás', sub: '2:00', kind: 'chapter', parents: ['ch7'], playable: false },
-  { id: 'ch9', title: '9 — Kit hoz segítségül?', sub: '3:00 · döntés', kind: 'choice', parents: ['ch8'], playable: false },
   {
-    id: 'endUnderpass', title: 'Az Aluljáró', kind: 'ending', parents: ['ch9'], playable: false,
-    condition: { label: 'bizalom: aluljáró', met: () => false },
+    id: 'ch5', title: '5 — Csillag tér', sub: '23:10 · kitisztul az ég', kind: 'chapter', parents: ['ch4'], playable: true,
+    current: (l) => at(l, 'toSquare', 'square'),
+    beats: [
+      { label: 'A Kórus: kenyér a galamboknak', side: true, done: (l) => l.flags.pigeons },
+      { label: 'Negyedik jel a falon', side: true, done: (l) => l.flags.sign4 },
+      { label: 'Bori a metrórács mögött', done: (l) => l.flags.bori },
+    ],
   },
   {
-    id: 'endHome', title: 'Hazafelé', kind: 'ending', parents: ['ch9'], playable: false,
-    condition: { label: 'bizalom: Gábor', met: (l) => l.flags.gaborHome },
+    id: 'ch6', title: '6 — Kit hozol?', sub: '23:40 · döntés', kind: 'choice', parents: ['ch5'], playable: true,
+    current: (l) => at(l, 'fetch', 'rescue'),
+    done: (l) => l.ending !== null,
+    beats: [
+      { label: 'Segítség a rácshoz', done: (l) => l.ending !== null },
+    ],
   },
   {
-    id: 'endSorry', title: 'Bocsánat', kind: 'ending', parents: ['ch9'], playable: false,
+    id: 'endUnderpass', title: 'Az Aluljáró', sub: 'Laci és Csont', kind: 'ending', parents: ['ch6'], playable: true,
+    done: (l) => l.ending === 'underpass',
+    condition: { label: 'Csont labdája', met: (l) => l.flags.ballGiven },
+  },
+  {
+    id: 'endHome', title: 'Hazafelé', sub: 'Gábor', kind: 'ending', parents: ['ch6'], playable: true,
+    done: (l) => l.ending === 'home',
+    condition: { label: 'hazakísérted Gábort', met: (l) => l.flags.gaborTrust },
+  },
+  {
+    id: 'endSorry', title: 'Bocsánat', sub: 'Dani', kind: 'ending', parents: ['ch6'], playable: true,
+    done: (l) => l.ending === 'sorry',
     condition: { label: 'Dani kulcstartója', met: (l) => l.flags.keychain },
   },
   {
-    id: 'endBase', title: 'Alap', sub: 'Ilonka néni hív segítséget', kind: 'ending', parents: ['ch9'], playable: false,
+    id: 'endBase', title: 'Ilonka néni', sub: 'mindig elérhető', kind: 'ending', parents: ['ch6'], playable: true,
+    done: (l) => l.ending === 'base',
   },
   { id: 'epilogue', title: 'Epilógus — Az új fal', sub: 'egy hét múlva', kind: 'chapter', parents: ['endUnderpass', 'endHome', 'endSorry', 'endBase'], playable: false },
+  // The full game, beyond this build (NARRATIVA.md).
+  { id: 'x1', title: 'Teljes játék — Tetők: a Kórus', sub: 'a galambok éjszakája', kind: 'chapter', parents: ['epilogue'], playable: false },
+  { id: 'x2', title: 'Patkányüldözés', sub: 'Kanóc', kind: 'choice', parents: ['x1'], playable: false },
+  { id: 'x3', title: 'Csatorna', kind: 'chapter', parents: ['x2'], playable: false },
+  { id: 'x4', title: 'Állomás', sub: 'az utolsó metró', kind: 'chapter', parents: ['x3'], playable: false },
 ];
