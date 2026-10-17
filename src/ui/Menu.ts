@@ -15,6 +15,10 @@ export interface MenuHandlers {
   play(): void;
   resume(): void;
   restart(): void;
+  /** Level picker on the title menu: options, the running one, and how to switch. */
+  levels: { options: Array<[string, string]>; current: string; select(id: string): void };
+  /** Story start points for the running level (first = from the beginning); empty if none. */
+  starts(): Array<[string, string]>;
   /** Live story tree of the current level, or null if it has none. */
   story(): StoryNode[] | null;
 }
@@ -42,6 +46,9 @@ export class Menu {
   private padNext = 0;
   /** Root items that open a page, in render order, so Back lands on the right one. */
   private rootPages: Page[] = [];
+  private rootPageStart = 0;
+  /** Chosen story start point (title menu), read by main on Play. */
+  startAt = '';
   private relayout: (() => void) | null = null;
 
   constructor(private el: HTMLElement, private settings: Settings, private h: MenuHandlers) {
@@ -100,7 +107,7 @@ export class Menu {
     const kicker = div('kicker', this.mode === 'pause' ? t('paused') : t('kicker'));
     p.append(kicker);
     if (this.page === 'root') {
-      p.append(el('h1', '', 'Füst'), el('p', 'lede', t('lede')));
+      p.append(el('h1', '', 'Szotyi'), el('p', 'lede', t('lede')));
     } else {
       p.append(el('h2', 'menu-title', t(this.page)));
     }
@@ -130,11 +137,16 @@ export class Menu {
     this.rootPages = [];
     if (this.mode === 'title') {
       this.button(list, t('play'), () => this.h.play(), true);
+      const lv = this.h.levels;
+      this.option(list, t('level'), lv.options, () => lv.current, (id) => lv.select(id));
+      const starts = this.h.starts();
+      if (starts.length > 1) this.option(list, t('startAt'), starts, () => this.startAt, (id) => { this.startAt = id; });
     } else {
       this.button(list, t('resume'), () => this.h.resume(), true);
       this.button(list, t('restart'), () => this.h.restart());
     }
     const pages: Array<Exclude<Page, 'root'>> = this.mode === 'pause' && this.h.story() ? ['story', 'settings', 'controls', 'credits'] : ['settings', 'controls', 'credits'];
+    this.rootPageStart = this.ctls.length;
     for (const pg of pages) {
       this.rootPages.push(pg);
       this.button(list, t(pg), () => this.go(pg));
@@ -229,7 +241,7 @@ export class Menu {
       this.render(0);
       // Land back on the item that opened the page.
       const i = this.rootPages.indexOf(from);
-      if (i >= 0) this.setFocus(i + (this.mode === 'pause' ? 2 : 1), false);
+      if (i >= 0) this.setFocus(i + this.rootPageStart, false);
     } else if (this.mode === 'pause' && performance.now() - this.openedAt > 250) {
       // The 250 ms guard: the Esc that broke pointer lock can arrive after the menu opened.
       this.h.resume();
@@ -301,6 +313,25 @@ export class Menu {
     };
     row.onclick = () => step(1);
     row.append(div('set-label', t(key as StringKey)), val);
+    show();
+    this.add(parent, { el: row, activate: () => step(1), adjust: step });
+  }
+
+  /** A ‹ value › row that isn't a stored setting (level, start point). */
+  private option(parent: HTMLElement, label: string, opts: Array<[string, string]>, get: () => string, set: (v: string) => void) {
+    const row = div('set-row set-choice menu-option');
+    row.tabIndex = 0;
+    row.setAttribute('role', 'button');
+    row.setAttribute('aria-label', label);
+    const val = div('set-val');
+    const index = () => Math.max(0, opts.findIndex(([v]) => v === get()));
+    const show = () => { val.innerHTML = `<span>‹</span>${opts[index()][1]}<span>›</span>`; };
+    const step = (d: -1 | 1) => {
+      set(opts[(index() + d + opts.length) % opts.length][0]);
+      show();
+    };
+    row.onclick = () => step(1);
+    row.append(div('set-label', label), val);
     show();
     this.add(parent, { el: row, activate: () => step(1), adjust: step });
   }

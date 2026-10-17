@@ -29,7 +29,7 @@ kitalált hely?)
   szárítókötélen ázó ruha, egy félbehagyott sakkparti a padon.
 - **Az eső mindent összeköt.** Ereszcsatornák, pocsolyák, csatornarácsok — a víz a felszínről lefelé
   folyik, ahogy a történet is (tetők → utca → aluljáró → metróalagút).
-- **A cicaszint.** Az emberek az utcán járnak; Füst a párkányokon, kerítéseken, garázstetőkön,
+- **A cicaszint.** Az emberek az utcán járnak; Szotyi a párkányokon, kerítéseken, garázstetőkön,
   pincelyukakon. Minden helyszínnek van egy „emberi” és egy „cicás” útja.
 
 ## Helyszínek
@@ -37,7 +37,7 @@ kitalált hely?)
 A helyszínek sorrendje lefelé visz — a tetőktől a föld alá.
 
 ### 1. A 7-es panel, 7. emelet — Boriék lakása
-Két szoba, régi bútorok, Bori szobájában festékszórók, rajzok a falon, egy ablakpárkány, ahol Füst
+Két szoba, régi bútorok, Bori szobájában festékszórók, rajzok a falon, egy ablakpárkány, ahol Szotyi
 alszik. Innen indul a játék: az ablakon át a párkányra, onnan az erkélyekre.
 *Cicaút:* erkélyről erkélyre, ereszcsatornán le.
 
@@ -96,7 +96,7 @@ plakátok, és Bori legnagyobb, titkos falfestménye — egy óriási cica. Itt 
 
 Egy egyszerű, három vonásból álló cicafej, sárga festékkel, mellette egy nyíl. Bori mindenhová
 ezt fújja, ahol jár. A játékban ez a „nyomkövetés” vizuális nyelve: friss jel = csepeg, régi =
-kifakult. Füst szaggal is érzi.
+kifakult. Szotyi szaggal is érzi.
 
 ### Hangulati referenciák
 

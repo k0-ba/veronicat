@@ -644,7 +644,7 @@ export class Lakotelep implements GameLevel {
     await s.say('Judit', 'Bori? Szia, kicsim… Akkor Rékáéknál alszol?');
     await s.wait(0.5);
     await s.say('Judit', 'Jó. Holnap beszélünk. És vedd fel, ha hívlak, jó?');
-    await s.say('Judit', 'Füst! Hol van ez a macska… Na mindegy, késésben vagyok.');
+    await s.say('Judit', 'Szotyi! Hol van ez a macska… Na mindegy, késésben vagyok.');
     await s.wait(0.6);
     (this.borisWindow.material as THREE.MeshBasicMaterial).map = this.boriDark;
     this.audio.thumpDoor();
@@ -663,7 +663,7 @@ export class Lakotelep implements GameLevel {
     this.ilonka.setVisible(true);
     this.ilonka.lookTarget = this.cat().root.position;
     this.ilonka.talking = true;
-    await s.say('Ilonka néni', 'Nahát, Füst! Te meg mit keresel idekint ilyen időben?');
+    await s.say('Ilonka néni', 'Nahát, Szotyi! Te meg mit keresel idekint ilyen időben?');
     this.ilonkaFood.visible = true;
     await s.say('Ilonka néni', 'Tessék, egyél csak. Csirkemáj, a tiéd.');
     await s.say('Ilonka néni', 'A Kertész lány ma este nem jött vissza. Pedig mindig köszön, ha elmegy itt…');

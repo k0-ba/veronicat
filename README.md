@@ -1,7 +1,7 @@
 # Veronicat
 
 Cicás 3D böngészős játék (a Stray-ből merítve, saját világgal). **Vertical slice v0.2**:
-Füst, Bori macskája egy esős októberi estén a Csillag-lakótelepen — 1. Üres ablak,
+Szotyi, Bori macskája egy esős októberi estén a Csillag-lakótelepen — 1. Üres ablak,
 2. Garázssor, 3. Buszmegálló (Gábor), vége az aluljárónál. Terv: [docs/VERTICAL_SLICE.md](docs/VERTICAL_SLICE.md).
 A v0.1 sikátor-greybox: `?level=alley`.
 

@@ -1,6 +1,6 @@
 /**
  * Subtitles + chapter cards (DOM). The cat never speaks: people get a coloured name,
- * animals (later) italic, and Füst's own perception is a small, nameless hint line.
+ * animals (later) italic, and Szotyi's own perception is a small, nameless hint line.
  */
 export const SPEAKERS: Record<string, string> = {
   Judit: '#9fc3ff',
@@ -42,7 +42,7 @@ export class Dialogue {
     this.cardTimer = window.setTimeout(() => this.card.classList.remove('show'), ms);
   }
 
-  /** Füst's perception / tutorial hint, top-centre, no speaker. */
+  /** Szotyi's perception / tutorial hint, top-centre, no speaker. */
   showHint(html: string, ms = 4000) {
     this.hint.innerHTML = html;
     this.hint.classList.add('show');

@@ -56,7 +56,7 @@ src/
   world/props.ts          panelház, lámpa, fa, busz, Bori-féle cicajel, graffiti
   world/Level.ts          v0.1 greybox sikátor (?level=alley)
   story/Script.ts         korutin-futtató játékidőn (wait / until / say), reset-biztos
-  story/Dialogue.ts       feliratok, fejezetkártya, Füst-tipp (DOM)
+  story/Dialogue.ts       feliratok, fejezetkártya, Szotyi-tipp (DOM)
   npc/Human.ts            procedurális placeholder ember (járás, guggolás, fejfordítás)
   gameplay/Scent.ts       szagmód: deszaturálás + sárga szagnyom-részecskék
   world/materials.ts      greybox anyagkészlet (1 m-es rács), neon táblák

@@ -1,6 +1,6 @@
 # Playtest útmutató — vertical slice v0.2 (Csillag-lakótelep)
 
-Mit akar a slice: **20–25 perc**, a NARRATIVA 1–3. fejezete tömörítve. Füst (Bori macskája)
+Mit akar a slice: **20–25 perc**, a NARRATIVA 1–3. fejezete tömörítve. Szotyi (Bori macskája)
 követi Bori sárga cicajeleit a lakótelepen, és rájön, hogy Bori bajban van. **Van vége**: a 3. jel
 az aluljárónál → záró kártya („Lefelé.”), az opcionális dolgok összesítőjével. Az aluljáróba
 magába (4. fejezet) még nem lehet bemenni — ez a következő slice.

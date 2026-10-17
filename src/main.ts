@@ -140,7 +140,23 @@ async function boot() {
     resume: () => start(),
     restart: () => { resetGame(); start(); },
     story: () => (level instanceof Lakotelep ? evaluateStory(LAKOTELEP_STORY, level) : null),
+    levels: {
+      get options(): Array<[string, string]> { return [['lakotelep', t('levelLakotelep')], ['alley', t('levelAlley')]]; },
+      current: level instanceof Lakotelep ? 'lakotelep' : 'alley',
+      // Levels are built at boot, so switching reloads with the same URL switch as before.
+      select: (id) => {
+        const q = new URLSearchParams(location.search);
+        if (id === 'alley') q.set('level', 'alley'); else q.delete('level');
+        q.delete('beat');
+        location.search = q.toString();
+      },
+    },
+    starts: () => (level instanceof Lakotelep ? [
+      ['', t('startBeginning')], ['courtyard', t('startCourtyard')], ['garage', t('startGarage')],
+      ['bus', t('startBus')], ['underpass', t('startUnderpass')],
+    ] : []),
   });
+  menu.startAt = params.get('beat') ?? '';
   try {
     await cat.loadModel(`${import.meta.env.BASE_URL}models/cat.glb`, CAT_MODEL_YAW);
   } catch (e) {
@@ -154,8 +170,8 @@ async function boot() {
   const begin = () => {
     begun = true;
     level.begin?.();
-    // Debug: `?beat=courtyard|garage|bus|underpass` jumps into the story.
-    const beat = params.get('beat');
+    // Title menu "Kezdés" (or `?beat=courtyard|garage|bus|underpass`) jumps into the story.
+    const beat = menu.startAt;
     if (beat && level instanceof Lakotelep) level.skipTo(beat);
   };
   /** Play from the title, resume from pause, or replay from the end card. */

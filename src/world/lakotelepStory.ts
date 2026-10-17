@@ -40,7 +40,7 @@ export const LAKOTELEP_STORY: StoryNodeDef<L>[] = [
     current: (l) => at(l, 'toStop', 'gabor', 'escort', 'toUnderpass'),
     beats: [
       { label: 'Az utolsó busz', done: (l) => l.flags.busArrived },
-      { label: 'Gábor észreveszi Füstöt', done: (l) => l.flags.gaborNoticed },
+      { label: 'Gábor észreveszi Szotyit', done: (l) => l.flags.gaborNoticed },
       { label: 'Dörgölőzés', done: (l) => l.flags.gaborRubbed },
       { label: 'Egy kupak tej', done: (l) => l.flags.milk },
       { label: 'Hazakíséred Gábort', side: true, done: (l) => l.flags.gaborHome },
@@ -57,7 +57,7 @@ export const LAKOTELEP_STORY: StoryNodeDef<L>[] = [
   { id: 'ch5', title: '5 — Tetők: a Kórus', sub: '23:00', kind: 'chapter', parents: ['ch4'], playable: false },
   { id: 'ch6', title: '6 — Patkányüldözés', sub: '0:00', kind: 'choice', parents: ['ch5'], playable: false },
   { id: 'ch6a', title: 'Elkapja és elengedi', sub: 'Kanóc tartozik', kind: 'branch', parents: ['ch6'], playable: false },
-  { id: 'ch6b', title: 'Elszalasztja', sub: 'Füst kimenti Kanócot', kind: 'branch', parents: ['ch6'], playable: false },
+  { id: 'ch6b', title: 'Elszalasztja', sub: 'Szotyi kimenti Kanócot', kind: 'branch', parents: ['ch6'], playable: false },
   { id: 'ch7', title: '7 — Csatorna', sub: '1:00', kind: 'chapter', parents: ['ch6a', 'ch6b'], playable: false },
   { id: 'ch8', title: '8 — Csillag tér állomás', sub: '2:00', kind: 'chapter', parents: ['ch7'], playable: false },
   { id: 'ch9', title: '9 — Kit hoz segítségül?', sub: '3:00 · döntés', kind: 'choice', parents: ['ch8'], playable: false },

@@ -52,7 +52,7 @@ graph TD
     F4 --> F5[5 — Tetők: a Kórus]
     F5 --> F6{6 — Patkányüldözés}
     F6 -->|Elkapja és elengedi| F7a[Kanóc tartozik]
-    F6 -->|Elszalasztja| F7b[Kanóc csapdában a víz miatt<br/>→ Füst kimenti]
+    F6 -->|Elszalasztja| F7b[Kanóc csapdában a víz miatt<br/>→ Szotyi kimenti]
     F7a --> F7[7 — Csatorna]
     F7b --> F7
     F7 --> F8[8 — Csillag tér állomás: Bori]
@@ -72,13 +72,13 @@ rossz befejezés** — mindegyikben megmenekül Bori; az különbözik, hogy kik
 ### Fejezetek
 
 #### Prológus — Emlék a tetőn
-*Egy héttel korábban, napnyugta, még nem esik.* Bori és Füst a 7-es panel tetején. Bori
-fújja a cicajelét egy kéményre, és elmeséli Füstnek a titkos falfestményét a „metróban”.
+*Egy héttel korábban, napnyugta, még nem esik.* Bori és Szotyi a 7-es panel tetején. Bori
+fújja a cicajelét egy kéményre, és elmeséli Szotyinak a titkos falfestményét a „metróban”.
 - **Játék:** mozgás- és ugrástutorial a tetőn, Bori után kell menni.
 - **Célja:** megismertetni a lányt, a cicajelet (sárga, nyíl) és elültetni: „a metró”.
 
 #### 1 — Üres ablak
-*20:00, szitáló eső.* Füst az ablakpárkányon vár. Judit telefonál („Akkor Rékáéknál alszol? Jó.
+*20:00, szitáló eső.* Szotyi az ablakpárkányon vár. Judit telefonál („Akkor Rékáéknál alszol? Jó.
 Holnap beszélünk.”) — nem tudja, hogy Bori nincs Rékáéknál. Elmegy műszakba, és bezárja az ajtót.
 - **Játék:** a lakás felfedezése, Bori nyomai (szétdobált festékszórók, egy hiányzó sárga
   festék). Kijutás a résnyire nyitott ablakon → erkélyek → ereszcsatorna.
@@ -87,19 +87,19 @@ Holnap beszélünk.”) — nem tudja, hogy Bori nincs Rékáéknál. Elmegy mű
 #### 2 — Garázssor
 *20:40.* Az első friss cicajel. A garázsban a Kapucnisok.
 - **Játék:** garázstetős platformszakasz; kihallgatás a tetőről. Robi: „Majd kijön, ha megunja.”
-  Dani: „És ha nem tud?” Füst most már tudja: Bori nem önszántából van távol.
-- **Opcionális:** Füst ellopja Dani kulcstartóját (Bori rajzolta) → ez kell a „Bocsánat”
+  Dani: „És ha nem tud?” Szotyi most már tudja: Bori nem önszántából van távol.
+- **Opcionális:** Szotyi ellopja Dani kulcstartóját (Bori rajzolta) → ez kell a „Bocsánat”
   befejezéshez, hogy Dani felismerje a cicát.
 
 #### 3 — Buszmegálló: Gábor ✅
 *21:15.* Gábor az utolsó busszal jön haza, a megállóban áll esőben, egy cigarettát forgat.
-- **Játék:** Füst nyávog, odadörgölőzik → Gábor leguggol, és a tejéből ad egy kupaknyit egy
-  műanyag kupakban. ✅ Ha Füst marad, dorombol, és elkíséri a kapuig → **bizalom: Gábor**.
+- **Játék:** Szotyi nyávog, odadörgölőzik → Gábor leguggol, és a tejéből ad egy kupaknyit egy
+  műanyag kupakban. ✅ Ha Szotyi marad, dorombol, és elkíséri a kapuig → **bizalom: Gábor**.
 - Gábor mondata: „Te vagy a sárga kabátos lány cicája, ugye? A szemközti házból.”
 
 #### 4 — Aluljáró ✅
 *22:00, erősödik az eső.* Tűz, rádió, a hajléktalanok.
-- **Játék:** Csont megugatja Füstöt → menekülés, majd megközelítés. Marika felismeri Füstöt: „Ez a
+- **Játék:** Csont megugatja Szotyit → menekülés, majd megközelítés. Marika felismeri Szotyit: „Ez a
   kis festő macskája!” Elmondja, hogy látta Borit a tér felé menni. Laci felismeri a csonka fület:
   „Kis Ördög… hazajöttél?”
 - **Opcionális:** Csont labdájának visszaszerzése → **bizalom: aluljáró**, és Csont elkíséri egy
@@ -109,21 +109,21 @@ Holnap beszélünk.”) — nem tudja, hogy Bori nincs Rékáéknál. Elmegy mű
 #### 5 — Tetők: a Kórus
 *23:00.* A legnagyobb platformszakasz, a panel-tetőkön át a galambdúcig.
 - **Játék:** a kenyérért cserébe a galambok elárulják: „Lement! Lement a Csillag alá! A rács, a
-  rács — bezárták!” A tetőről látszik a Csillag tér lejárata — de a rács zárva, Füst nem fér be.
+  rács — bezárták!” A tetőről látszik a Csillag tér lejárata — de a rács zárva, Szotyi nem fér be.
   A galambok: „Kérdezd a patkányt. A patkányok mindenhova bejutnak.”
 
 #### 6 — Patkányüldözés ✅
-*0:00.* A piac pincéi. Füst megtalálja Kanócot.
+*0:00.* A piac pincéi. Szotyi megtalálja Kanócot.
 - **Játék:** az egyetlen igazi ügyességi szekvencia ✅ — üldözés csövek, ládák, szűk rések között.
 - **Elágazás:**
-  - **Elkapja** → Kanóc alkudozik az életéért. Ha Füst elengedi: tartozás. (Ha Füst nem engedi el,
+  - **Elkapja** → Kanóc alkudozik az életéért. Ha Szotyi elengedi: tartozás. (Ha Szotyi nem engedi el,
     a játék nem engedi tovább — a cica csak „játszik” vele, aztán elengedi; nincs gonosz döntés.)
-  - **Elszalasztja** → nem kudarc: Füst továbbkeres, és Kanócot egy elárasztott pinceaknában
+  - **Elszalasztja** → nem kudarc: Szotyi továbbkeres, és Kanócot egy elárasztott pinceaknában
     találja, csapdában. Kimenti → tartozás.
 - Mindkét ág ugyanoda vezet ✅: a patkány később segít megtalálni a lányt.
 
 #### 7 — Csatorna ❓ („Fúlcsort”?)
-*1:00, felhőszakadás.* Kanóc vezeti Füstöt a főcsatornán át. Sötét, csak Kanóc hangja és a víz.
+*1:00, felhőszakadás.* Kanóc vezeti Szotyit a főcsatornán át. Sötét, csak Kanóc hangja és a víz.
 - **Játék:** lopakodó, csendes szakasz; a víz emelkedik, időnyomás nélkül, de érezhetően.
   Kanóc mesél a „nagyok világáról”, és miért nem szereti az embereket.
 - Kanóc a végén: „Innen egyedül mész, szőrös. Ott lent a lányod. És tartozásom megadva.”
@@ -131,28 +131,28 @@ Holnap beszélünk.”) — nem tudja, hogy Bori nincs Rékáéknál. Elmegy mű
 #### 8 — Csillag tér állomás
 *2:00.* A befejezetlen peron. Bori nagy, sárga cicafestménye a falon. Bori egy akna alján, a
 bokája kificamodott, fázik, a telefonja lemerült, a víz már bokáig ér.
-- **Játék:** az érzelmi csúcspont. Bori meglátja Füstöt, sír és nevet. „Te hülye macska… Hogy
-  jutottál ide?” Füst nem tudja kihúzni. Bori: „Hozz valakit. Bárkit. Kérlek.”
-- Füst fogja Bori **sárga fülhallgatóját / festékszóróját** — egy tárgy, amit felvisz bizonyítéknak.
+- **Játék:** az érzelmi csúcspont. Bori meglátja Szotyit, sír és nevet. „Te hülye macska… Hogy
+  jutottál ide?” Szotyi nem tudja kihúzni. Bori: „Hozz valakit. Bárkit. Kérlek.”
+- Szotyi fogja Bori **sárga fülhallgatóját / festékszóróját** — egy tárgy, amit felvisz bizonyítéknak.
 
 #### 9 — Segítséghívás (döntési pont)
-*3:00.* Füst visszarohan a felszínre egy rövidebb úton (Kanóc mutatta). Akit odavisz, az jön
+*3:00.* Szotyi visszarohan a felszínre egy rövidebb úton (Kanóc mutatta). Akit odavisz, az jön
 — **amelyik szereplővel bizalmat épített**. Ha többel is, a játékos választ.
 
 ### Befejezések
 
 | Befejezés | Feltétel | Mi történik | Téma |
 |---|---|---|---|
-| **Az Aluljáró** | bizalom: aluljáró (Csont labdája) | Füst Bori tárgyát Lacinak viszi. Laci ismeri a gyári vészkijáratot; Tomi és Csont jön vele, Marika felrázza a környéket. Laci a csavarhúzójával kinyitja a régi rácsot. Ők viszik fel Borit. | A láthatatlan emberek mentik meg |
-| **Hazafelé** | bizalom: Gábor (tej + elkísérés) | Füst Gábor ablaka alatt nyávog, amíg az le nem jön. Gábor zseblámpával követi a cicát, és hívja a mentőket — életében először csinál valami bátrat. | A magányos ember, aki végre lép |
-| **Bocsánat** | Dani kulcstartója | Füst Dani elé ejti a kulcstartót. Dani megérti, felébreszti a többieket, és bevallják, hol a lány. Robi nyitja ki a rácsot, amit ő zárt be. | Felelősségvállalás |
-| **Alap** | egyik sem | Füst a buszmegálló melletti telefonfülkénél / Ilonka néni ablakánál addig nyávog, amíg Ilonka néni hívja a rendőrséget. | — (biztonsági háló, hogy nincs kudarc) |
+| **Az Aluljáró** | bizalom: aluljáró (Csont labdája) | Szotyi Bori tárgyát Lacinak viszi. Laci ismeri a gyári vészkijáratot; Tomi és Csont jön vele, Marika felrázza a környéket. Laci a csavarhúzójával kinyitja a régi rácsot. Ők viszik fel Borit. | A láthatatlan emberek mentik meg |
+| **Hazafelé** | bizalom: Gábor (tej + elkísérés) | Szotyi Gábor ablaka alatt nyávog, amíg az le nem jön. Gábor zseblámpával követi a cicát, és hívja a mentőket — életében először csinál valami bátrat. | A magányos ember, aki végre lép |
+| **Bocsánat** | Dani kulcstartója | Szotyi Dani elé ejti a kulcstartót. Dani megérti, felébreszti a többieket, és bevallják, hol a lány. Robi nyitja ki a rácsot, amit ő zárt be. | Felelősségvállalás |
+| **Alap** | egyik sem | Szotyi a buszmegálló melletti telefonfülkénél / Ilonka néni ablakánál addig nyávog, amíg Ilonka néni hívja a rendőrséget. | — (biztonsági háló, hogy nincs kudarc) |
 
 ### Epilógus — Az új fal
 *Egy hét múlva, napsütés.* Bori bekötött bokával, Judit mellette. A lakótelep egyik tűzfalán
 új, nagy falfestmény: egy szürke cica egy sárga lánnyal, körülöttük — a befejezéstől függően —
 a hajléktalanok, Gábor vagy a fiúk. Bori ezúttal nem éjjel, titokban festi, hanem nappal, és
-nézik. Füst a párkányon alszik.
+nézik. Szotyi a párkányon alszik.
 
 ---
 

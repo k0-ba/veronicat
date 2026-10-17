@@ -25,9 +25,9 @@ lehet törölni — nem végleges kánon.
 
 ## A történet magja egy bekezdésben
 
-Füst, a szürke kandúr, egy poszt-szovjet lakótelep hetedik emeletén él Borival, a 14 éves,
+Szotyi, a szürke kandúr, egy poszt-szovjet lakótelep hetedik emeletén él Borival, a 14 éves,
 graffitiző lánnyal. Egy esős októberi estén Bori nem jön haza. Az anyja éjszakás nővér, azt hiszi, a
-lány egy barátnőjénél alszik. Füst kiszökik az ablakon, és Bori festett cicajeleit követve bejárja a
+lány egy barátnőjénél alszik. Szotyi kiszökik az ablakon, és Bori festett cicajeleit követve bejárja a
 várost — a garázssort, az aluljárót, ahol a hajléktalanok laknak, a tetőket, ahol a galambok
 pletykálnak, és végül a soha meg nem nyitott metróállomást, ahol Bori sérülten, csapdába esve vár,
 miközben emelkedik a víz. Egy cica nem tud kinyitni egy rácsot — de segítséget tud hozni. A

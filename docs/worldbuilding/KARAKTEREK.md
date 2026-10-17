@@ -1,12 +1,12 @@
 # Karakterek
 
 Minden karakterlap felépítése: **szerep · demográfia · külső · személyiség · vágy / félelem ·
-beszédstílus · kapcsolat Borival és Füsttel · ív**. A ✅ jelölt elemek Veronika döntései, minden más
+beszédstílus · kapcsolat Borival és Szotyival · ív**. A ✅ jelölt elemek Veronika döntései, minden más
 javaslat.
 
 ---
 
-## Füst — a cica (játékos karakter)
+## Szotyi — a cica (játékos karakter)
 
 | | |
 |---|---|
@@ -49,7 +49,7 @@ Jó szívű: titokban szendvicset visz az aluljáróba Marikának és Lacinak.
 
 - **Vágy:** hogy lássák. A falfestmények az ő hangja.
 - **Félelem:** hogy ő is elhagyható, ahogy az apja elment.
-- **Beszédstílus:** kevés szó, száraz humor, Füsttel viszont végig beszél.
+- **Beszédstílus:** kevés szó, száraz humor, Szotyival viszont végig beszél.
 - **Ív:** a meggondolatlan, magányos lány a végén rájön, hogy sokkal több ember figyel rá, mint
   hitte. Az epilógusban nem titokban fest — a lakótelep közösen nézi az új falat.
 
@@ -99,7 +99,7 @@ Vörös Csillag felvarró. Mindig van nála egy csavarhúzó.
 **Személyiség.** Csendes, lassú beszédű, nagyon türelmes. Rádiókat javít, ebből él. Ő az
 aluljáró „polgármestere”. Ismeri a régi gyári és metrós alagutakat — ezért fontos a fináléban.
 
-- **Kapcsolat Füsttel:** ő etette Füstöt kölyökkorában, ő nevezte el „Kis Ördögnek”. Bori vitte
+- **Kapcsolat Szotyival:** ő etette Szotyit kölyökkorában, ő nevezte el „Kis Ördögnek”. Bori vitte
   el tőle — Laci beleegyezett, mert „a cicának otthon jobb”.
 - **Vágy:** valami hasznosat csinálni. Hogy ne legyen láthatatlan.
 
@@ -130,7 +130,7 @@ mindenkiről mindent tud. Borit „kis festőnek” hívja.
 Csont: öreg, nagy, fekete keverék kutya, egy szeme hályogos.
 
 **Személyiség.** Félénk, alig beszél, de a kutyájával végtelenül gyengéd. Csont a játékban
-először ijesztő (Füst fél a kutyáktól), aztán kiderül, hogy szelíd — a „kutyától való félelem”
+először ijesztő (Szotyi fél a kutyáktól), aztán kiderül, hogy szelíd — a „kutyától való félelem”
 legyőzése egy kis mellékszál.
 
 ---
@@ -155,7 +155,7 @@ szemközti házból” — és a saját lányára emlékezteti.
 
 - **Vágy:** hogy valakinek számítson. Hogy egyszer ne a biztonságosat válassza.
 - **Félelem:** hogy az élete már nem változik meg.
-- **Ív:** a tejjel indul; ha Füst bizalmat épít vele, a fináléban követi őt a föld alá — a
+- **Ív:** a tejjel indul; ha Szotyi bizalmat épít vele, a fináléban követi őt a föld alá — a
   zseblámpájával és a telefonjával ő hívja ki a mentőket. Életében először tesz valami
   bátrat.
 
@@ -165,7 +165,7 @@ szemközti házból” — és a saját lányára emlékezteti.
 
 | | |
 |---|---|
-| **Szerep** | Először zsákmány, akit Füst üldöz; később segít megtalálni Borit ✅ |
+| **Szerep** | Először zsákmány, akit Szotyi üldöz; később segít megtalálni Borit ✅ |
 | **Faj / kor** | Vándorpatkány, öreg (patkánymércével), kb. 2,5 éves |
 | **Lakóhely** | A piac alatti pincék és a csatornarendszer |
 
@@ -175,7 +175,7 @@ Nagyon gyors, nagyon ügyes.
 **Személyiség.** Cinikus, ravasz, üzletember: mindennek ára van. A felszínt „a nagyok világának”
 hívja, és megveti. De becsülete van — ha tartozik, megadja.
 
-- **Ív:** az üldözés után (vagy Füst elengedi, vagy kimenti az áradó vízből — lásd
+- **Ív:** az üldözés után (vagy Szotyi elengedi, vagy kimenti az áradó vízből — lásd
   [NARRATIVA.md](NARRATIVA.md)) tartozása lesz. Megmutatja az utat a csatornán át az állomásig,
   amit egyetlen ember sem ismer. Ellenségből szövetséges.
 - **Beszédstílus:** gyors, gúnyos, sok „kölyök” és „szőrös” megszólítás.
@@ -186,7 +186,7 @@ hívja, és megveti. De becsülete van — ha tartozik, megadja.
 ## A Kórus — a galambok *(felvetve)*
 
 Hat-nyolc galamb a tetőn, mindig egyszerre beszélnek, egymás szavába vágnak. Pletykásak,
-megbízhatatlanok, de mindent látnak felülről. Füstnek meg kell szereznie a bizalmukat (vagy egy
+megbízhatatlanok, de mindent látnak felülről. Szotyinak meg kell szereznie a bizalmukat (vagy egy
 darab kenyeret Marikától), hogy elmondják: „a sárga kabátos lány lement a Csillag tér alá”.
 Platformszakasz vezet hozzájuk.
 
@@ -205,7 +205,7 @@ gyerekek.
 
 **Külső:** sötét melegítők, kapucnik, energiaital, egy hangszóró, amiből zene szól.
 
-**Szerep:** a garázssoron Füst kihallgatja őket („…majd kijön, ha megunja…”) — ez az első
+**Szerep:** a garázssoron Szotyi kihallgatja őket („…majd kijön, ha megunja…”) — ez az első
 nyom, hogy Bori nem önszántából maradt lent. Dani bűntudata egy lehetséges mellékszál és befejezés.
 
 ---
@@ -217,6 +217,6 @@ nyom, hogy Bori nem önszántából maradt lent. Dani bűntudata egy lehetséges
 | **Kor** | 79 |
 | **Szerep** | A 7-es panel földszintjén lakik, az ablakából mindent lát. |
 
-Pongyola, csavarók, egy macskakaja-doboz az ablakpárkányon. Ha Füst nyávog az ablakánál, ad egy
+Pongyola, csavarók, egy macskakaja-doboz az ablakpárkányon. Ha Szotyi nyávog az ablakánál, ad egy
 falatot, és elmondja (magának), hogy „a Kertész lány ma este nem jött vissza”. Egy apró,
 humoros megerősítés az elején.

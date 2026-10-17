@@ -172,7 +172,7 @@ button:active { transform: scale(0.98); }
 .controls dd { margin: 0; color: var(--ink-dim); align-self: center; }
 .hint { font-size: 12px; color: var(--ink-dim); margin: 12px 0 0; }
 
-/* ── story layer: subtitles, chapter card, Füst's hints ── */
+/* ── story layer: subtitles, chapter card, Szotyi's hints ── */
 #subs {
   position: absolute;
   left: 50%;
@@ -416,3 +416,5 @@ body.scent #vignette { opacity: 1; }
 .story-card.kind-branch .story-title { font-weight: 500; }
 .story-card.kind-choice .story-title::after { content: ' ◆'; color: var(--ink-dim); font-size: 10px; }
 .story-meta .story-badge { white-space: nowrap; }
+.menu-list .menu-option { margin: 0; padding: 11px 16px; border-color: var(--line); border-radius: 12px; }
+.menu-list .menu-option.is-focus { border-color: rgba(255, 179, 107, 0.7); }
