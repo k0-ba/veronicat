@@ -5,6 +5,7 @@ import { RAPIER, type Physics, type RigidBody, type Collider } from '../physics/
 import { JumpFinder, arcPoint, jumpDuration, type JumpTarget } from './JumpFinder';
 import type { Audio } from '../core/Audio';
 import { CatAnimator, NATIVE_SPEED } from './CatAnimator';
+import { applySkin } from './catSkins';
 
 /** Collider: a small upright capsule. Cats are long, but a capsule keeps the KCC sane. */
 const RADIUS = 0.13;
@@ -53,6 +54,9 @@ export class Cat {
   private lean = 0;
   /** Skeletal clips, when the GLB has them (else the procedural squash below is all). */
   private anim: CatAnimator | null = null;
+  /** Clip advance in cat-lengths/s for the loaded model (see CatAnimator.NATIVE_SPEED). */
+  private nativeSpeed = NATIVE_SPEED;
+  private model: THREE.Object3D | null = null;
   private animState: CatState | null = null;
   private sinceLand = 9;
 
@@ -102,7 +106,7 @@ export class Cat {
     this.modelHolder.add(g);
   }
 
-  async loadModel(url: string, yawOffset = 0) {
+  async loadModel(url: string, yawOffset = 0, opts: { speeds?: { walk: number; run: number }; skin?: string } = {}) {
     const loader = new GLTFLoader();
     loader.setMeshoptDecoder(MeshoptDecoder);
     const gltf = await loader.loadAsync(url);
@@ -132,6 +136,14 @@ export class Cat {
     this.modelHolder.add(holder);
     this.anim = gltf.animations.length ? new CatAnimator(model, gltf.animations) : null;
     this.animState = null;
+    this.nativeSpeed = opts.speeds ?? NATIVE_SPEED;
+    this.model = model;
+    if (opts.skin) applySkin(model, opts.skin);
+  }
+
+  /** Recolour the loaded model (only models with a baked skin mask react). */
+  setSkin(id: string) {
+    if (this.model) applySkin(this.model, id);
   }
 
   get busy() {
@@ -322,7 +334,7 @@ export class Cat {
       this.animState = this.state;
     }
     const sp = this.speed;
-    const walkN = NATIVE_SPEED.walk * CAT_LENGTH, runN = NATIVE_SPEED.run * CAT_LENGTH;
+    const walkN = this.nativeSpeed.walk * CAT_LENGTH, runN = this.nativeSpeed.run * CAT_LENGTH;
     // Locomotion: idle → walk → run by speed, playback rate locked to ground speed.
     const loco = () => {
       const wr = THREE.MathUtils.clamp((sp - SPEED_WALK) / (SPEED_RUN * 0.8 - SPEED_WALK), 0, 1);

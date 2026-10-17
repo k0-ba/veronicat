@@ -2,6 +2,7 @@ import type { Settings, SettingsData } from '../core/Settings';
 import { t, setLang, type StringKey } from './i18n';
 import type { StoryNode } from '../world/storyTree';
 import { renderStoryTree } from './StoryTree';
+import { SKIN_IDS } from '../player/catSkins';
 
 /**
  * Title + pause menu with Settings / Controls / Credits pages, built into #title.
@@ -171,6 +172,9 @@ export class Menu {
     this.choice(body, 'shadows', [[true, t('on')], [false, t('off')]]);
     this.choice(body, 'pixelRatio', PIXEL_STEPS.map((v): [number, string] => [v, `${v}×`]));
     this.choice(body, 'rain', RAIN_STEPS.map(([v, k]): [number, string] => [v, t(k)]));
+
+    body.append(div('set-sec', t('secCat')));
+    this.choice(body, 'catSkin', [...SKIN_IDS, 'classic'].map((id): [string, string] => [id, t(`skin_${id}` as StringKey)]));
 
     body.append(div('set-sec', t('secLanguage')));
     this.choice(body, 'lang', [['hu', 'Magyar'], ['en', 'English']]);

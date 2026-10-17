@@ -17,6 +17,7 @@ export interface SettingsData {
   pixelRatio: number;     // cap on devicePixelRatio
   rain: number;           // 0..1 share of the rain streaks drawn
   lang: Lang;
+  catSkin: string;        // a key of SKINS (src/player/catSkins.ts) or 'classic' (old model)
 }
 
 export const DEFAULT_SETTINGS: SettingsData = {
@@ -31,6 +32,7 @@ export const DEFAULT_SETTINGS: SettingsData = {
   pixelRatio: 2,
   rain: 1,
   lang: 'hu',
+  catSkin: 'szotyi',
 };
 
 const KEY = 'veronicat.settings.v1';
@@ -71,7 +73,7 @@ export class Settings {
   }
 
   reset() {
-    this.data = { ...DEFAULT_SETTINGS, lang: this.data.lang };
+    this.data = { ...DEFAULT_SETTINGS, lang: this.data.lang, catSkin: this.data.catSkin };
     this.save();
     for (const l of this.listeners) l(this.data, null);
   }

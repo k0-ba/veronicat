@@ -26,6 +26,8 @@ import type { JumpTarget } from './player/JumpFinder';
 
 /** The Meshy cat faces -Z in its file; rotate so it faces +Z (the cat's forward). */
 const CAT_MODEL_YAW = 0;
+/** Clip advance of cat_lowpoly.glb in cat-lengths/s (printed by tools/rig/lowpoly_cat.py). */
+const LOWPOLY_SPEED = { walk: 0.6196, run: 2.7451 };
 
 async function boot() {
   const canvas = document.getElementById('game') as HTMLCanvasElement;
@@ -157,11 +159,21 @@ async function boot() {
     ] : []),
   });
   menu.startAt = params.get('beat') ?? '';
-  try {
-    await cat.loadModel(`${import.meta.env.BASE_URL}models/cat.glb`, CAT_MODEL_YAW);
-  } catch (e) {
-    console.warn('cat.glb failed, using placeholder', e);
-  }
+  // Cat model: the low-poly rig with recolourable coats, or the old Quaternius cat.
+  let catModel = '';
+  const loadCat = async (skin: string) => {
+    const want = skin === 'classic' ? 'cat.glb' : 'cat_lowpoly.glb';
+    if (want === catModel) { cat.setSkin(skin); return; }
+    catModel = want;
+    try {
+      await cat.loadModel(`${import.meta.env.BASE_URL}models/${want}`, CAT_MODEL_YAW,
+        want === 'cat.glb' ? {} : { speeds: LOWPOLY_SPEED, skin });
+    } catch (e) {
+      console.warn(`${want} failed, using placeholder`, e);
+    }
+  };
+  await loadCat(settings.data.catSkin);
+  settings.onChange((s, key) => { if (key === 'catSkin' || key === null) void loadCat(s.catSkin); });
   menu.setReady();
 
   let running = false;
