@@ -83,6 +83,13 @@ export class Lakotelep implements GameLevel {
   private busT = 0;
   private signs: THREE.Object3D[] = [];
   private shooCooldown = 0;
+  private lastSafe = V(-4.5, 6, -13.4);
+  private safeT = 0;
+  private stageT = 0;
+  private nudged = false;
+  private keychainAt = 0;
+  private clock = 0;
+  private sinceKeychain() { return this.clock - this.keychainAt; }
   private underpassLight!: THREE.PointLight;
 
   constructor(
@@ -400,6 +407,17 @@ export class Lakotelep implements GameLevel {
     this.wall(-26, 12, -25.8, 22, 4);
     this.wall(32, 12, 32.2, 22, 4);
     this.box(12, 0, 22.4, 32, 2, 22.6, m.brick);
+    // Playable-area shell, tall enough that no roof or fence can be jumped over.
+    const H = 9;
+    this.wall(-24.3, -14.2, -24.1, 12, H);   // courtyard west, behind the fence
+    this.wall(-26, 11.8, -24.1, 12, H);      // street west corner, north cap
+    this.wall(-26.2, 11.8, -26, 22.6, H);    // street west
+    this.wall(-26.2, 22.6, -24, 22.8, H);    // street west corner, south cap
+    this.wall(22.1, -14.2, 22.3, 12, H);     // behind the garages (roof is higher than the fence)
+    this.wall(22.1, 11.8, 32.2, 12, H);      // street east corner, north cap
+    this.wall(32.2, 11.8, 32.4, 22.8, H);    // street east
+    this.wall(12, 22.6, 32.4, 22.8, H);      // street east, south
+    this.wall(12, -14.4, 22.3, -14.2, H);    // north-east, behind the brick wall
   }
 
   private buildPanel4() {
@@ -567,7 +585,8 @@ export class Lakotelep implements GameLevel {
         this.group.remove(this.keychain);
         this.keychain.scale.setScalar(0.8);
         cat().carry(this.keychain);
-        this.dialogue.showHint('Egy kulcstartó — a kis sárga cicát <b>Bori</b> rajzolta rá. Dani zsebéből eshetett ki.');
+        this.keychainAt = this.clock;
+        this.dialogue.showHint('Egy kulcstartó — a kis sárga cicát <b>Bori</b> rajzolta rá. Dani zsebéből eshetett ki. Bori jele a <b>garázssor déli végén</b> folytatódik.', 6000);
       },
     });
     I.add({
@@ -800,12 +819,34 @@ export class Lakotelep implements GameLevel {
 
   update(dt: number, time: number) {
     this.script.update(dt);
+    this.clock += dt;
     const cat = this.cat();
     const c = cat.feet;
 
     // Follow the cat with the shadow frustum.
     this.moon.position.set(c.x - 8, c.y + 18, c.z + 6);
     this.moon.target.position.copy(c);
+
+    // Safety net: if the cat ever ends up outside the playable area (or falls through),
+    // put it back where it last stood on solid ground.
+    if (!inBounds(c)) {
+      cat.teleport(this.lastSafe.clone(), cat.yaw);
+      this.dialogue.showHint('Erre nincs tovább. Visszamentél oda, ahol utoljára álltál.', 3000);
+    } else if (cat.state === 'ground') {
+      this.safeT -= dt;
+      if (this.safeT <= 0) { this.lastSafe.copy(c); this.safeT = 0.5; }
+    }
+
+    // Stuck nudges: the garage chapter's way on is sign #2 at the row's south end.
+    if (this.stage === 'garage') {
+      this.stageT += dt;
+      if (!this.nudged && (this.stageT > 100 || (this.flags.keychain && this.sinceKeychain() > 25))) {
+        this.nudged = true;
+        this.dialogue.showHint('Bori következő jele a <b>garázssor déli végén</b>, az út felőli falon. Tartsd az <b>F</b>-et.', 6000);
+      }
+    } else {
+      this.stageT = 0;
+    }
 
     // Stage transitions driven by position.
     if (this.stage === 'descend' && c.y < 0.3) {
@@ -890,8 +931,11 @@ export class Lakotelep implements GameLevel {
       case 'courtyard':
         return f.sign1 ? null : [this.cat().feet.clone().setY(0.1), V(4, 0.1, -8.6)];
       case 'garage':
-        if (!f.overheard) return [V(4, 0.1, -8.6), V(9, 0.1, -10), V(14.5, 1.45, -12.9), V(16.6, GARAGE.h, -11), V(17.6, GARAGE.h, -4), V(VENT.x, GARAGE.h, VENT.z - 0.6)];
-        return [V(VENT.x, GARAGE.h, VENT.z), V(18.5, GARAGE.h, 6), V(18.5, GARAGE.h, 11.6), V(18.5, 0.1, 12.6)];
+        if (f.overheard || f.keychain || this.cat().feet.y < 1 && this.cat().feet.x > 12.5)
+          return this.cat().feet.y > GARAGE.h - 0.4
+            ? [this.cat().feet.clone(), V(18.5, GARAGE.h, 11.6), V(18.5, 0.1, 12.6)]
+            : [this.cat().feet.clone().setY(0.1), V(14.5, 0.1, 6), V(15.6, 0.1, 12.6), V(18.5, 0.1, 12.6)];
+        return [V(4, 0.1, -8.6), V(9, 0.1, -10), V(14.5, 1.45, -12.9), V(16.6, GARAGE.h, -11), V(17.6, GARAGE.h, -4), V(VENT.x, GARAGE.h, VENT.z - 0.6)];
       case 'toStop':
       case 'gabor':
         return [V(18.5, 0.1, 12.6), V(14, 0.1, 13), V(9, 0.1, 13.2)];
@@ -910,7 +954,7 @@ export class Lakotelep implements GameLevel {
       intro: 'Bori ablaka…',
       descend: 'Bori nem jött haza. Juss le az <b>udvarra</b> — erkélyről erkélyre.',
       courtyard: 'Keresd Bori <b>sárga cicajelét</b> az udvaron.',
-      garage: f.overheard ? 'Bori bajban van. Kövesd a jeleit a <b>garázssor végéig</b>.' : 'A nyom a <b>garázssor</b> felé vezet. A tetőkről mindent hallani.',
+      garage: f.overheard ? 'Bori bajban van. Kövesd a jeleit a <b>garázssor déli végéig</b>.' : 'Bori következő jele a <b>garázssor déli végén</b> van. <small>(A tetőről mindent hallani…)</small>',
       toStop: 'Menj a <b>buszmegállóhoz</b>.',
       gabor: f.milk ? 'Gábor…' : f.gaborNoticed ? 'Menj oda hozzá, <b>dörgölőzz</b>.' : 'Valaki leszállt a buszról. <b>Nyávogj</b> neki.',
       escort: 'Kísérd haza <b>Gábort</b>.',
@@ -949,6 +993,9 @@ export class Lakotelep implements GameLevel {
     this.dialogue.clearAll();
     for (const k of Object.keys(this.flags) as Array<keyof typeof this.flags>) this.flags[k] = false;
     this.stage = 'intro';
+    this.stageT = 0;
+    this.nudged = false;
+    this.lastSafe.set(-4.5, 6, -13.4);
     (this.borisWindow.material as THREE.MeshBasicMaterial).map = this.boriLit;
     this.ilonkaWindow.visible = true;
     this.ilonka.setVisible(false);
@@ -1013,6 +1060,14 @@ function shade(hex: string) {
   const n = parseInt(hex.slice(1), 16);
   const r = ((n >> 16) & 255) * 0.45, g = ((n >> 8) & 255) * 0.45, b = (n & 255) * 0.45;
   return `rgb(${r | 0},${g | 0},${b | 0})`;
+}
+
+/** Playable area: courtyard + garages, the street strip, and the underpass pit. */
+function inBounds(c: THREE.Vector3) {
+  if (c.y < -3.6 || c.y > 20) return false;
+  if (c.z >= -14.5 && c.z <= 12.2 && c.x >= -24.5 && c.x <= 22.5) return true;
+  if (c.z >= 11.5 && c.z <= 23 && c.x >= -26.5 && c.x <= 32.6) return true;
+  return false;
 }
 
 function keychainMesh() {
