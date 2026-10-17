@@ -61,7 +61,7 @@ const STRINGS = {
   secControls: { hu: 'Irányítás', en: 'Controls' },
   secGraphics: { hu: 'Grafika', en: 'Graphics' },
   secLanguage: { hu: 'Nyelv', en: 'Language' },
-  secCat: { hu: 'Macska', en: 'Cat' },
+  secGame: { hu: 'Játék', en: 'Game' },
   catSkin: { hu: 'Bunda', en: 'Coat' },
   skin_szotyi: { hu: 'Szotyi (szürke cirmos)', en: 'Szotyi (grey tabby)' },
   skin_black: { hu: 'Fekete', en: 'Black' },

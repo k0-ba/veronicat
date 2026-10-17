@@ -157,8 +157,6 @@ export class Menu {
     this.rootFocus = this.ctls.length;
     if (this.mode === 'title') {
       this.button(list, t('play'), () => this.h.play(), true);
-      const lv = this.h.levels;
-      this.option(list, t('level'), lv.options, () => lv.current, (id) => lv.select(id));
       const starts = this.h.starts();
       if (starts.length > 1) this.option(list, t('startAt'), starts, () => this.startAt, (id) => { this.startAt = id; });
     } else {
@@ -176,6 +174,13 @@ export class Menu {
   private buildSettings(body: HTMLElement) {
     const s = this.settings;
     const pct = (v: number) => `${Math.round(v * 100)}%`;
+    // Level switch reloads the page, so it lives here (not on the title screen, where it was
+    // easy to flip by accident) and only before a run has started.
+    if (this.mode === 'title') {
+      body.append(div('set-sec', t('secGame')));
+      const lv = this.h.levels;
+      this.option(body, t('level'), lv.options, () => lv.current, (id) => lv.select(id));
+    }
     body.append(div('set-sec', t('secAudio')));
     this.slider(body, 'masterVolume', 0, 1, 0.05, pct);
     this.slider(body, 'musicVolume', 0, 1, 0.05, pct);

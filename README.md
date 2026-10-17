@@ -4,7 +4,7 @@ Cicás 3D böngészős játék (a Stray-ből merítve, saját világgal). **Vert
 Szotyi, Bori macskája egy esős októberi estén a Csillag-lakótelepen — 1. Üres ablak,
 2. Garázssor, 3. Buszmegálló (Gábor), 4. Aluljáró (Csont, Marika, Laci, Tomi), 5. Csillag tér
 (kitisztul a csillagos ég), 6. Kit hozol? — négy befejezés attól függően, kivel épített bizalmat. Terv: [docs/VERTICAL_SLICE.md](docs/VERTICAL_SLICE.md).
-A v0.1 sikátor-greybox: `?level=alley`.
+A v0.1 sikátor-greybox: Beállítások → Játék → Pálya (vagy `?level=alley`).
 
 - Élő: https://veronicat.pages.dev/
 - Repó: https://github.com/k0-ba/veronicat (nyilvános)
