@@ -5,7 +5,20 @@ import { t } from './i18n';
  * Renders evaluated story nodes as a layered tree: layer = longest path from a root,
  * cards in rows, SVG edges drawn after layout. Knows nothing about any one story.
  */
-export function renderStoryTree(nodes: StoryNode[]) {
+/** How many steps past the unlocked frontier show up, as nameless cue cards. */
+const LOOKAHEAD = 2;
+
+export function renderStoryTree(all: StoryNode[]) {
+  // Spoiler control: unlocked nodes are shown; locked ones only as cues within
+  // LOOKAHEAD steps of the frontier; everything further out stays hidden.
+  const depth = new Map<string, number>();
+  for (const n of all) {
+    if (n.status !== 'locked') { depth.set(n.id, 0); continue; }
+    const ds = n.parents.map((p) => depth.get(p) ?? Infinity);
+    depth.set(n.id, ds.length ? Math.max(...ds) + 1 : Infinity);
+  }
+  const nodes = all.filter((n) => depth.get(n.id)! <= LOOKAHEAD);
+  const more = nodes.length < all.length && all.some((n) => depth.get(n.id)! > LOOKAHEAD && n.parents.length > 0);
   const byId = new Map(nodes.map((n) => [n.id, n]));
   const layer = new Map<string, number>();
   for (const n of nodes) {
@@ -36,6 +49,12 @@ export function renderStoryTree(nodes: StoryNode[]) {
       cards.set(n.id, c);
       r.append(c);
     }
+    inner.append(r);
+  }
+  if (more) {
+    const r = document.createElement('div');
+    r.className = 'story-row story-more';
+    r.textContent = t('storyMore');
     inner.append(r);
   }
 
@@ -74,22 +93,47 @@ export function renderStoryTree(nodes: StoryNode[]) {
 }
 
 function card(n: StoryNode) {
+  if (n.status === 'locked') return cueCard(n);
   const c = document.createElement('div');
   c.className = `story-card st-${n.status} kind-${n.kind}${n.playable ? '' : ' future'}`;
   c.tabIndex = 0;
-  const statusLabel = n.status === 'locked' && !n.playable ? t('stFuture') : t(`st_${n.status}` as const);
+  const statusLabel = t(`st_${n.status}` as const);
   let html = `<div class="story-meta"><span class="story-badge">${statusLabel}</span>${n.sub ? `<span>${esc(n.sub)}</span>` : ''}</div>`;
   html += `<div class="story-title">${esc(n.title)}</div>`;
   if (n.beats.length) {
-    html += '<ul class="story-beats">' + n.beats
-      .map((b) => `<li class="${b.done ? 'done' : ''}${b.side ? ' side' : ''}">${esc(b.label)}${b.side ? ` <em>${t('sideThread')}</em>` : ''}</li>`)
-      .join('') + '</ul>';
+    // Done beats and the next main beat are named; later ones fold into one ellipsis,
+    // undiscovered side threads stay a nameless hint.
+    const nextMain = n.beats.find((b) => !b.side && !b.done);
+    let folded = false;
+    const items: string[] = [];
+    for (const b of n.beats) {
+      if (b.done || b === nextMain) {
+        items.push(`<li class="${b.done ? 'done' : 'next'}${b.side ? ' side' : ''}">${esc(b.label)}${b.side ? ` <em>${t('sideThread')}</em>` : ''}</li>`);
+      } else if (b.side) {
+        items.push(`<li class="side cue">??? <em>${t('sideThread')}</em></li>`);
+      } else if (!folded) {
+        folded = true;
+        items.push('<li class="cue">…</li>');
+      }
+    }
+    html += '<ul class="story-beats">' + items.join('') + '</ul>';
   }
   if (n.condition) {
     html += `<div class="story-cond${n.condition.met ? ' met' : ''}">${n.condition.met ? '●' : '○'} ${esc(n.condition.label)}</div>`;
   }
   c.innerHTML = html;
   c.setAttribute('aria-label', `${n.title} — ${statusLabel}`);
+  return c;
+}
+
+/** A locked node: its place in the tree, never its name. */
+function cueCard(n: StoryNode) {
+  const c = document.createElement('div');
+  c.className = `story-card st-locked cue kind-${n.kind}`;
+  c.tabIndex = 0;
+  const label = t(n.kind === 'choice' ? 'cueChoice' : n.kind === 'ending' ? 'cueEnding' : 'st_locked');
+  c.innerHTML = `<div class="story-meta"><span class="story-badge">${label}</span></div><div class="story-title">???</div>`;
+  c.setAttribute('aria-label', label);
   return c;
 }
 

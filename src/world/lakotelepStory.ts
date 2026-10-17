@@ -30,7 +30,7 @@ export const LAKOTELEP_STORY: StoryNodeDef<L>[] = [
     id: 'ch2', title: '2 — Garázssor', sub: '20:52', kind: 'chapter', parents: ['ch1'], playable: true,
     current: (l) => at(l, 'garage'),
     beats: [
-      { label: 'Kihallgatás a garázstetőről', done: (l) => l.flags.overheard },
+      { label: 'Kihallgatás a garázstetőről', side: true, done: (l) => l.flags.overheard },
       { label: 'Dani kulcstartója', side: true, done: (l) => l.flags.keychain },
       { label: 'Második jel: a buszmegálló felé', done: (l) => l.flags.sign2 },
     ],
