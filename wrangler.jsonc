@@ -1,0 +1,8 @@
+{
+  // Cloudflare Workers static assets (the successor of Pages). No server code: the
+  // Worker only serves dist/. _headers in public/ is honoured.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "veronicat",
+  "compatibility_date": "2026-10-12",
+  "assets": { "directory": "dist" }
+}

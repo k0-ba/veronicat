@@ -1,0 +1,8 @@
+node_modules/
+dist/
+site/
+bundle/
+.env.cloudflare
+art_source/
+*.zip
+.DS_Store

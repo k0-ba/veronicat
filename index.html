@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="hu">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Veronicat — vertical slice</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <canvas id="game"></canvas>
+
+    <div id="hud">
+      <div id="objective"></div>
+      <div id="prompts"></div>
+      <div id="toast"></div>
+      <div id="debug" hidden></div>
+    </div>
+
+    <div id="title" class="overlay">
+      <div class="panel">
+        <div class="kicker">vertical slice · greybox · v0.1</div>
+        <h1>Veronicat</h1>
+        <p class="lede">Egy macska, egy sikátor, egy meleg szellőző a tetőn.</p>
+        <div id="loading">Betöltés…</div>
+        <button id="start" hidden>Kattints az indításhoz</button>
+        <dl class="controls">
+          <dt>WASD</dt><dd>séta</dd>
+          <dt>Shift</dt><dd>futás</dd>
+          <dt>Egér</dt><dd>kamera</dd>
+          <dt>Space</dt><dd>ugrás a kijelölt pontra</dd>
+          <dt>E</dt><dd>interakció</dd>
+          <dt>Q</dt><dd>nyávogás</dd>
+          <dt>R</dt><dd>újrakezdés</dd>
+        </dl>
+        <p class="hint">Kontroller is megy: bal kar · jobb kar · A ugrás · X interakció · Y nyávogás</p>
+      </div>
+    </div>
+
+    <div id="end" class="overlay" hidden>
+      <div class="panel">
+        <div class="kicker">zzz</div>
+        <h1>Szundi.</h1>
+        <p class="lede">Ez a vertical slice vége. Innen jön Veronika világa.</p>
+        <button id="again">Még egyszer</button>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
