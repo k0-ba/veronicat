@@ -80,10 +80,10 @@ export function applySkin(root: THREE.Object3D, id: string) {
       let region = Math.round(mask.getX(i) * 32) as R;
       if (region === R.Eye) region = R.Face; // the eye faces are too big; the real eyes are separate meshes
       // The bake gives the faces just below the ear base the inner-ear colour; they are forehead fur.
-      if (region === R.EarIn) {
-        const f = i - (i % 3);
-        if ((pos.getY(f) + pos.getY(f + 1) + pos.getY(f + 2)) / 3 < 0.25) region = R.Face;
-      }
+      const f = i - (i % 3);
+      if (region === R.EarIn && (pos.getY(f) + pos.getY(f + 1) + pos.getY(f + 2)) / 3 < 0.25) region = R.Face;
+      // Likewise the two big faces either side of the nose: only the narrow middle strip is nose.
+      if (region === R.Nose && Math.abs(pos.getX(f) + pos.getX(f + 1) + pos.getX(f + 2)) / 3 > 0.005) region = R.Face;
       const stripe = mask.getY(i), noise = mask.getZ(i);
       let hex = skin.parts[region] ?? skin.coat;
       if (!(region in skin.parts)) {
