@@ -17,6 +17,9 @@ import { Scent } from './gameplay/Scent';
 import { Rain } from './world/Rain';
 import { Interactions } from './gameplay/Interactions';
 import { HUD } from './ui/HUD';
+import { Menu } from './ui/Menu';
+import { Settings } from './core/Settings';
+import { t, tPrompt } from './ui/i18n';
 import type { JumpTarget } from './player/JumpFinder';
 
 /** The Meshy cat faces -Z in its file; rotate so it faces +Z (the cat's forward). */
@@ -25,7 +28,8 @@ const CAT_MODEL_YAW = 0;
 async function boot() {
   const canvas = document.getElementById('game') as HTMLCanvasElement;
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  const settings = new Settings();
+  renderer.setPixelRatio(Math.min(devicePixelRatio, settings.data.pixelRatio));
   renderer.setSize(innerWidth, innerHeight);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
@@ -37,7 +41,7 @@ async function boot() {
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
   scene.environmentIntensity = 0.25;
 
-  const camera = new THREE.PerspectiveCamera(62, innerWidth / innerHeight, 0.05, 120);
+  const camera = new THREE.PerspectiveCamera(settings.data.fov, innerWidth / innerHeight, 0.05, 120);
 
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
@@ -99,20 +103,50 @@ async function boot() {
   scene.add(debugLines);
   hud.debugVisible = params.has('debug');
 
-  // ── start screen ──
-  const loadingEl = document.getElementById('loading')!;
-  const startBtn = document.getElementById('start') as HTMLButtonElement;
+  // ── settings, applied live ──
+  const againBtn = document.getElementById('again')!;
+  let shadowsOn = renderer.shadowMap.enabled;
+  settings.onChange((s) => {
+    audio.setVolumes(s.masterVolume, s.musicVolume, s.sfxVolume);
+    input.sensitivity = s.sensitivity;
+    input.invertY = s.invertY;
+    if (camera.fov !== s.fov) { camera.fov = s.fov; camera.updateProjectionMatrix(); }
+    const pr = Math.min(devicePixelRatio, s.pixelRatio);
+    if (renderer.getPixelRatio() !== pr) {
+      renderer.setPixelRatio(pr);
+      composer.setPixelRatio(pr);
+      renderer.setSize(innerWidth, innerHeight);
+      composer.setSize(innerWidth, innerHeight);
+    }
+    if (shadowsOn !== s.shadows) {
+      shadowsOn = renderer.shadowMap.enabled = s.shadows;
+      // Shadow sampling is compiled into the shaders: rebuild them.
+      scene.traverse((o) => {
+        const m = (o as THREE.Mesh).material;
+        if (m) for (const mat of Array.isArray(m) ? m : [m]) mat.needsUpdate = true;
+      });
+    }
+    rain.setDensity(s.rain);
+    againBtn.textContent = t('again');
+  });
+
+  // ── title / pause menu ──
   const titleEl = document.getElementById('title')!;
   const endEl = document.getElementById('end')!;
+  const menu = new Menu(titleEl, settings, {
+    play: () => start(),
+    resume: () => start(),
+    restart: () => { resetGame(); start(); },
+  });
   try {
     await cat.loadModel(`${import.meta.env.BASE_URL}models/cat.glb`, CAT_MODEL_YAW);
   } catch (e) {
     console.warn('cat.glb failed, using placeholder', e);
   }
-  loadingEl.hidden = true;
-  startBtn.hidden = false;
+  menu.setReady();
 
   let running = false;
+  let paused = false;
   let begun = false;
   const begin = () => {
     begun = true;
@@ -121,17 +155,33 @@ async function boot() {
     const beat = params.get('beat');
     if (beat && level instanceof Lakotelep) level.skipTo(beat);
   };
+  /** Play from the title, resume from pause, or replay from the end card. */
   const start = () => {
-    titleEl.hidden = true;
+    menu.close();
     endEl.hidden = true;
+    paused = false;
     audio.start();
     input.lock();
     input.clearPressed();
     running = true;
     if (!begun) begin();
   };
-  startBtn.onclick = start;
-  document.getElementById('again')!.onclick = () => { resetGame(); start(); };
+  againBtn.onclick = () => { resetGame(); start(); };
+
+  const pause = () => {
+    if (!running) return;
+    running = false;
+    paused = true;
+    audio.setPaused(true);
+    if (document.pointerLockElement) document.exitPointerLock();
+    menu.open('pause');
+  };
+  // Esc while pointer-locked is eaten by the browser to release the lock; losing the
+  // lock any other way (alt-tab, focus loss) should pause too.
+  document.addEventListener('pointerlockchange', () => {
+    if (!document.pointerLockElement && running) pause();
+  });
+  addEventListener('blur', () => pause());
 
   level.onGoal = (summary?: EndSummary) => {
     running = false;
@@ -179,7 +229,16 @@ async function boot() {
     fpsAvg += (1 / Math.max(dt, 1e-4) - fpsAvg) * 0.05;
 
     input.poll(dt);
+    menu.update();
+    if (running && input.consume('pause')) pause();
     const look = running ? input.consumeLook() : { x: 0, y: 0 };
+    if (paused) {
+      // Simulation frozen; keep drawing the scene behind the menu.
+      input.consumeLook();
+      hud.setPrompts([]);
+      composer.render();
+      return;
+    }
 
     // Camera-relative movement.
     const fwd = follow.forward();
@@ -206,14 +265,14 @@ async function boot() {
       if (input.consume('meow')) {
         audio.meow();
         level.meow(cat.feet);
-        hud.toast('Miáú', 700);
+        hud.toast(t('meowToast'), 700);
         if (focused && focusAction === 'meow') focused.onInteract();
       }
       input.consume('jump'); // drop stale presses
 
       const prompts: Array<{ key: string; label: string }> = [];
-      if (target && cat.state === 'ground') prompts.push({ key: input.label('jump'), label: target.kind === 'down' ? 'Leugrás' : 'Ugrás' });
-      if (focused) prompts.push({ key: input.label(focused.action ?? 'interact'), label: focused.label });
+      if (target && cat.state === 'ground') prompts.push({ key: input.label('jump'), label: target.kind === 'down' ? t('jumpDown') : t('jump') });
+      if (focused) prompts.push({ key: input.label(focused.action ?? 'interact'), label: tPrompt(focused.label) });
       hud.setPrompts(prompts);
     } else {
       hud.setPrompts([]);
@@ -281,7 +340,8 @@ async function boot() {
   requestAnimationFrame((t) => frame(t));
 
   // Handle for automated tests / console tinkering.
-  (window as any).__game = { cat, level, physics, follow, input, resetGame, start, dialogue, scent,
+  (window as any).__game = { cat, level, physics, follow, input, resetGame, start, pause, dialogue, scent, settings, menu,
+    get paused() { return paused; },
     /** Advance n frames by hand (for headless tests where rAF is paused). */
     advance(n = 1) { for (let i = 0; i < n; i++) frame(last + 1000 / 60, true); },
     get target() { return target; },

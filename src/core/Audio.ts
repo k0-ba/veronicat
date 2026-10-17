@@ -5,20 +5,49 @@
 export class Audio {
   private ctx: AudioContext | null = null;
   private master!: GainNode;
+  /** Buses under master: the speaker music, and everything else (rain, engine, cat). */
+  private musicBus!: GainNode;
+  private sfx!: GainNode;
   private noiseBuf!: AudioBuffer;
+  /** Volumes 0..1 from settings; kept here so they apply even before start(). */
+  private vol = { master: 0.8, music: 0.8, sfx: 0.8 };
 
   /** Must be called from a user gesture. */
   start() {
-    if (this.ctx) return;
+    if (this.ctx) { this.ctx.resume(); return; }
     this.ctx = new AudioContext();
     this.master = this.ctx.createGain();
-    this.master.gain.value = 0.6;
     this.master.connect(this.ctx.destination);
+    this.musicBus = this.ctx.createGain();
+    this.musicBus.connect(this.master);
+    this.sfx = this.ctx.createGain();
+    this.sfx.connect(this.master);
+    this.applyVolumes();
     const len = this.ctx.sampleRate * 2;
     this.noiseBuf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
     const d = this.noiseBuf.getChannelData(0);
     for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
     this.rainLoop();
+  }
+
+  setVolumes(master: number, music: number, sfx: number) {
+    this.vol = { master, music, sfx };
+    this.applyVolumes();
+  }
+
+  private applyVolumes() {
+    const c = this.ctx;
+    if (!c) return;
+    // 0.75 keeps the old 0.6 master level at the 0.8 default.
+    this.master.gain.setTargetAtTime(this.vol.master * 0.75, c.currentTime, 0.03);
+    this.musicBus.gain.setTargetAtTime(this.vol.music, c.currentTime, 0.03);
+    this.sfx.gain.setTargetAtTime(this.vol.sfx, c.currentTime, 0.03);
+  }
+
+  /** Pause menu: freeze every sound (and the music scheduler's clock) in place. */
+  setPaused(paused: boolean) {
+    if (!this.ctx) return;
+    if (paused) this.ctx.suspend(); else this.ctx.resume();
   }
 
   private noise(dur: number, loop = false) {
@@ -40,7 +69,7 @@ export class Audio {
     hp.frequency.value = 300;
     const g = c.createGain();
     g.gain.value = 0.09;
-    src.connect(hp).connect(lp).connect(g).connect(this.master);
+    src.connect(hp).connect(lp).connect(g).connect(this.sfx);
   }
 
   meow(pitch = 1) {
@@ -73,7 +102,7 @@ export class Audio {
     g.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
     osc.connect(f1).connect(g);
     osc.connect(f2).connect(g);
-    g.connect(this.master);
+    g.connect(this.sfx);
     osc.start(t);
     osc.stop(t + 0.65);
   }
@@ -89,7 +118,7 @@ export class Audio {
     const g = c.createGain();
     g.gain.setValueAtTime(vol, t);
     g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-    src.connect(lp).connect(g).connect(this.master);
+    src.connect(lp).connect(g).connect(this.sfx);
   }
 
   sniff() {
@@ -108,7 +137,7 @@ export class Audio {
       g.gain.setValueAtTime(0.0001, t);
       g.gain.exponentialRampToValueAtTime(0.18, t + 0.03);
       g.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
-      src.connect(bp).connect(g).connect(this.master);
+      src.connect(bp).connect(g).connect(this.sfx);
     }
   }
 
@@ -123,7 +152,7 @@ export class Audio {
       const lp = c.createBiquadFilter();
       lp.type = 'lowpass';
       lp.frequency.value = 260;
-      lp.connect(gain).connect(this.master);
+      lp.connect(gain).connect(this.musicBus);
       // Four-on-the-floor kick + off-beat bass, scheduled ahead in a loop.
       const bpm = 96, beat = 60 / bpm;
       let next = c.currentTime + 0.1;
@@ -171,7 +200,7 @@ export class Audio {
       lp.frequency.value = 180;
       const gain = c.createGain();
       gain.gain.value = 0;
-      o.connect(lp).connect(gain).connect(this.master);
+      o.connect(lp).connect(gain).connect(this.sfx);
       o.start();
       this.engine = { gain };
     }
@@ -189,7 +218,7 @@ export class Audio {
     const g = c.createGain();
     g.gain.setValueAtTime(0.25, t);
     g.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
-    src.connect(hp).connect(g).connect(this.master);
+    src.connect(hp).connect(g).connect(this.sfx);
   }
 
   jump() { this.thump(900, 0.25, 0.12); }
@@ -216,7 +245,7 @@ export class Audio {
       g.gain.setValueAtTime(0.0001, t);
       g.gain.exponentialRampToValueAtTime(0.4, t + 0.04);
       g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
-      src.connect(bp).connect(g).connect(this.master);
+      src.connect(bp).connect(g).connect(this.sfx);
     }
   }
 
@@ -230,7 +259,7 @@ export class Audio {
       const g = c.createGain();
       g.gain.setValueAtTime(0.12, t);
       g.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
-      o.connect(g).connect(this.master);
+      o.connect(g).connect(this.sfx);
       o.start(t);
       o.stop(t + 0.42);
     }
@@ -247,7 +276,7 @@ export class Audio {
     const g = c.createGain();
     g.gain.setValueAtTime(0.05, t);
     g.gain.setValueAtTime(0.0001, t + 0.2);
-    o.connect(g).connect(this.master);
+    o.connect(g).connect(this.sfx);
     o.start(t);
     o.stop(t + 0.21);
   }
@@ -271,7 +300,7 @@ export class Audio {
     g.gain.exponentialRampToValueAtTime(0.9, t + 0.4);
     g.gain.setValueAtTime(0.9, t + dur - 0.5);
     g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-    src.connect(lp).connect(am).connect(g).connect(this.master);
+    src.connect(lp).connect(am).connect(g).connect(this.sfx);
     lfo.start(t);
     lfo.stop(t + dur);
   }

@@ -39,7 +39,10 @@ cserélhetők legyenek anélkül, hogy a mozgást/kamerát újra kellene írni.
 src/
   main.ts                 boot, renderer, bloom, fix lépésű loop, HUD-bekötés
   core/Input.ts           billentyű + egér (pointer lock) + gamepad → akciók
-  core/Audio.ts           procedurális placeholder hangok (nyáú, dorombolás, eső…)
+  core/Audio.ts           procedurális placeholder hangok (nyáú, dorombolás, eső…); master → zene / effekt buszok
+  core/Settings.ts        beállítások (hang, érzékenység, FOV, grafika, nyelv) → localStorage, élő onChange
+  ui/Menu.ts              cím- és szünetmenü + Beállítások / Irányítás / Készítők; egér, billentyű, gamepad
+  ui/i18n.ts              UI-szövegek (hu alap, en a menükhöz és promptokhoz)
   physics/Physics.ts      Rapier wrapper, ray-helper, dinamikus mesh-szinkron
   player/Cat.ts           karakter: KCC, állapotgép, procedurális animáció
   player/JumpFinder.ts    Stray-szerű ugráscél-kereső + közös ívfüggvény

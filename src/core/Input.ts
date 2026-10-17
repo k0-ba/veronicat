@@ -2,7 +2,7 @@
  * Unified input: keyboard + mouse (pointer lock) + standard gamepad.
  * Gameplay code reads *actions*, never raw keys, so rebinding / touch later is one file.
  */
-export type Action = 'jump' | 'interact' | 'meow' | 'reset' | 'debug';
+export type Action = 'jump' | 'interact' | 'meow' | 'reset' | 'debug' | 'pause';
 
 const KEY_ACTIONS: Record<string, Action> = {
   Space: 'jump',
@@ -10,14 +10,16 @@ const KEY_ACTIONS: Record<string, Action> = {
   KeyQ: 'meow',
   KeyR: 'reset',
   Backquote: 'debug',
+  Escape: 'pause',
 };
 
-// Standard gamepad mapping: 0=A 1=B 2=X 3=Y 9=Start
+// Standard gamepad mapping: 0=A 1=B 2=X 3=Y 8=Back/Select 9=Start
 const PAD_ACTIONS: Array<[number, Action]> = [
   [0, 'jump'],
   [2, 'interact'],
   [3, 'meow'],
-  [9, 'reset'],
+  [8, 'reset'],
+  [9, 'pause'],
 ];
 
 export class Input {
@@ -30,6 +32,9 @@ export class Input {
   look = { x: 0, y: 0 };
   lastLookTime = 0;
   usingPad = false;
+  /** From settings: multiplier on look speed, and vertical look flip. */
+  sensitivity = 1;
+  invertY = false;
 
   private keys = new Set<string>();
   private pressed = new Set<Action>();
@@ -51,8 +56,9 @@ export class Input {
 
     addEventListener('mousemove', (e) => {
       if (document.pointerLockElement !== this.canvas) return;
-      this.look.x += e.movementX * 0.0022;
-      this.look.y += e.movementY * 0.0022;
+      const k = 0.0022 * this.sensitivity;
+      this.look.x += e.movementX * k;
+      this.look.y += e.movementY * k * (this.invertY ? -1 : 1);
       this.lastLookTime = performance.now();
     });
     canvas.addEventListener('click', () => this.lock());
@@ -83,8 +89,8 @@ export class Input {
       const rx = dz(pad.axes[2] ?? 0), ry = dz(pad.axes[3] ?? 0);
       if (lx || ly) { x = lx; y = -ly; this.usingPad = true; }
       if (rx || ry) {
-        this.look.x += rx * 2.6 * dt;
-        this.look.y += ry * 1.8 * dt;
+        this.look.x += rx * 2.6 * dt * this.sensitivity;
+        this.look.y += ry * 1.8 * dt * this.sensitivity * (this.invertY ? -1 : 1);
         this.lastLookTime = performance.now();
         this.usingPad = true;
       }
@@ -119,7 +125,7 @@ export class Input {
   }
 
   label(a: Action): string {
-    if (this.usingPad) return ({ jump: 'A', interact: 'X', meow: 'Y', reset: '≡', debug: '-' } as const)[a];
-    return ({ jump: 'Space', interact: 'E', meow: 'Q', reset: 'R', debug: '`' } as const)[a];
+    if (this.usingPad) return ({ jump: 'A', interact: 'X', meow: 'Y', reset: '⧉', debug: '-', pause: '≡' } as const)[a];
+    return ({ jump: 'Space', interact: 'E', meow: 'Q', reset: 'R', debug: '`', pause: 'Esc' } as const)[a];
   }
 }

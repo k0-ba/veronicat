@@ -7,6 +7,8 @@ export class Rain {
   private speeds: Float32Array;
   private readonly count = 1800;
   private readonly box = new THREE.Vector3(14, 10, 14);
+  /** Streaks actually drawn and simulated (graphics setting), 0..count. */
+  private active = this.count;
 
   constructor() {
     this.pos = new Float32Array(this.count * 6);
@@ -30,9 +32,17 @@ export class Rain {
     this.speeds[i] = 9 + Math.random() * 4;
   }
 
+  /** 0..1 share of the streaks to draw. */
+  setDensity(f: number) {
+    this.active = Math.round(this.count * Math.min(1, Math.max(0, f)));
+    this.mesh.geometry.setDrawRange(0, this.active * 2);
+    this.mesh.visible = this.active > 0;
+  }
+
   update(dt: number, center: THREE.Vector3) {
+    if (!this.active) return;
     const half = this.box.y / 2;
-    for (let i = 0; i < this.count; i++) {
+    for (let i = 0; i < this.active; i++) {
       const o = i * 6;
       const dy = this.speeds[i] * dt;
       this.pos[o + 1] -= dy;
