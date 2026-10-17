@@ -193,47 +193,44 @@ const sprayMat = (tex: THREE.Texture, glow = 0) => new THREE.MeshStandardMateria
 });
 
 /**
- * Hand-sprayed tag: jittered, leaning letters with a fat dark outline, a drop shadow,
- * a lighter core, overspray and drips. `bubble` = rounded throw-up letters.
+ * Real hand-styled tags from ambientCG "GraffitiSet001" (CC0, https://ambientcg.com/a/GraffitiSet001):
+ * 16 tags in a 4 × 4 atlas, baked to grey strokes + alpha so each copy is tinted. Rects are
+ * each tag's trimmed bounds in image space (u0, v0, u1, v1, y down).
  */
-export function tag(text: string, color: string, w = 2, h = 0.7, bubble = false) {
-  const W = 1024, H = Math.round(1024 * (h / w));
-  const tex = canvasTex(W, H, (g) => {
-    const size = H * (bubble ? 0.62 : 0.66);
-    g.font = bubble ? `900 ${size}px "Arial Rounded MT Bold", "Trebuchet MS", system-ui, sans-serif`
-      : `italic 900 ${size}px Impact, "Arial Black", system-ui, sans-serif`;
-    g.textBaseline = 'middle';
-    g.lineJoin = 'round';
-    const letters = [...text];
-    const widths = letters.map((c) => g.measureText(c).width * 0.92);
-    const total = widths.reduce((a, b) => a + b, 0);
-    const scale = Math.min(1, (W * 0.88) / total);
-    let x = (W - total * scale) / 2;
-    const placed: Array<{ c: string; x: number; y: number; r: number; s: number }> = [];
-    letters.forEach((c, i) => {
-      const s = scale * (0.86 + Math.random() * 0.3);
-      placed.push({ c, x: x + (widths[i] * scale) / 2, y: H / 2 + (Math.random() - 0.5) * H * 0.14 - i * H * 0.012, r: (Math.random() - 0.5) * 0.32 - 0.06, s });
-      x += widths[i] * scale;
-    });
-    const each = (fn: (p: typeof placed[number]) => void) => placed.forEach((p) => {
-      g.save(); g.translate(p.x, p.y); g.rotate(p.r); g.scale(p.s, p.s); g.textAlign = 'center'; fn(p); g.restore();
-    });
-    overspray(g, W, H, color, 260);
-    // Drop shadow, outline, fill, highlight.
-    each((p) => { g.fillStyle = 'rgba(0,0,0,0.75)'; g.fillText(p.c, 10, 10); });
-    each((p) => { g.lineWidth = bubble ? 26 : 18; g.strokeStyle = bubble ? color : '#0c0c0e'; g.strokeText(p.c, 0, 0); });
-    each((p) => {
-      const grad = g.createLinearGradient(0, -size / 2, 0, size / 2);
-      grad.addColorStop(0, bubble ? '#f4f0e6' : '#ffffff');
-      grad.addColorStop(0.35, bubble ? '#f4f0e6' : color);
-      grad.addColorStop(1, bubble ? '#cfc8b8' : color);
-      g.fillStyle = grad;
-      g.shadowColor = color; g.shadowBlur = 14;
-      g.fillText(p.c, 0, 0);
-    });
-    drips(g, bubble ? color : '#0c0c0e', placed.map((p) => [p.x + (Math.random() - 0.5) * 20, p.y + size * 0.36] as [number, number]), H * 0.3);
+const TAG_RECTS = [
+  [0.002, 0.028, 0.247, 0.231], [0.257, 0.032, 0.495, 0.208], [0.503, 0.046, 0.747, 0.23], [0.753, 0.047, 0.998, 0.191],
+  [0.0, 0.31, 0.242, 0.424], [0.252, 0.321, 0.5, 0.433], [0.501, 0.323, 0.748, 0.428], [0.751, 0.287, 1.0, 0.452],
+  [0.002, 0.551, 0.243, 0.728], [0.253, 0.566, 0.497, 0.705], [0.5, 0.539, 0.748, 0.703], [0.75, 0.557, 1.0, 0.71],
+  [0.003, 0.792, 0.248, 0.952], [0.25, 0.821, 0.5, 0.936], [0.501, 0.827, 0.748, 0.917], [0.75, 0.806, 0.998, 0.932],
+];
+export const TAG_COUNT = TAG_RECTS.length;
+let tagAtlas: THREE.Texture | null = null;
+const atlas = () => {
+  if (!tagAtlas) {
+    tagAtlas = new THREE.TextureLoader().load(`${import.meta.env.BASE_URL}textures/graffiti_tags.png`);
+    tagAtlas.colorSpace = THREE.SRGBColorSpace;
+    tagAtlas.anisotropy = 8;
+  }
+  return tagAtlas;
+};
+
+/** Sprayed tag `i` (0..15) from the atlas, `w` metres wide, tinted `color`, with a faint dark shadow. */
+export function sprayTag(i: number, color: string, w = 1.6) {
+  const [u0, v0, u1, v1] = TAG_RECTS[((i % TAG_COUNT) + TAG_COUNT) % TAG_COUNT];
+  const h = (w * (v1 - v0)) / (u1 - u0);
+  const geo = new THREE.PlaneGeometry(w, h);
+  const uv = geo.getAttribute('uv') as THREE.BufferAttribute;
+  for (let k = 0; k < uv.count; k++) uv.setXY(k, u0 + uv.getX(k) * (u1 - u0), 1 - v1 + uv.getY(k) * (v1 - v0));
+  const mat = (c: THREE.ColorRepresentation, opacity: number, factor: number) => new THREE.MeshStandardMaterial({
+    map: atlas(), color: c, transparent: true, opacity, roughness: 0.8, depthWrite: false,
+    polygonOffset: true, polygonOffsetFactor: factor, polygonOffsetUnits: factor,
   });
-  return new THREE.Mesh(new THREE.PlaneGeometry(w, h), sprayMat(tex));
+  const mesh = new THREE.Mesh(geo, mat(color, 1, -3));
+  const shadow = new THREE.Mesh(geo, mat(0x000000, 0.55, -2));
+  shadow.position.set(w * 0.012, -w * 0.012, 0);
+  shadow.renderOrder = -1;
+  mesh.add(shadow);
+  return mesh;
 }
 
 export type StencilKind = 'dog' | 'skull' | 'eye' | 'crown' | 'smiley' | 'star' | 'arrow' | 'heart' | 'bird' | 'bolt';

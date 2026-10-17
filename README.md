@@ -14,6 +14,9 @@ A v0.1 sikátor-greybox: `?level=alley`.
 Vezérlés: WASD séta · Shift futás · egér kamera · Space ugrás a kijelölt pontra ·
 E interakció · Q nyávogás · F szagmód (tartsd) · R újrakezdés · Esc szünet/menü · N történetfa · `` ` `` debug. Gamepad is megy (Start menü, Select újrakezdés).
 
+Graffiti tagek: ambientCG „GraffitiSet001” — **CC0** (<https://ambientcg.com/a/GraffitiSet001>),
+`public/textures/graffiti_tags.png` (szürke vonás + alfa, a játék színezi).
+
 Cica asset (rigelt, animált): Quaternius „Animal Pack Vol.2” — **CC0**
 (<https://opengameart.org/content/animated-animales-low-poly>). A klipeket
 (idle, walk, run, crouch, jump, land, swipe, scratch, sleep) a

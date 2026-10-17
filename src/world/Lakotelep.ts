@@ -5,7 +5,7 @@ import type { Audio } from '../core/Audio';
 import type { Cat } from '../player/Cat';
 import type { GameLevel, EndSummary } from './types';
 import { worldUVBox } from './materials';
-import { panelTexture, asphaltTexture, corrugatedTexture, catSign, graffiti, tag, stencil, type StencilKind, panelBlock, streetLamp, tree, leafLitter, bus } from './props';
+import { panelTexture, asphaltTexture, corrugatedTexture, catSign, graffiti, sprayTag, stencil, type StencilKind, panelBlock, streetLamp, tree, leafLitter, bus } from './props';
 import { Human } from '../npc/Human';
 import { Dog } from '../npc/Dog';
 import { Sky, MOON_DIR } from './Sky';
@@ -222,9 +222,10 @@ export class Lakotelep implements GameLevel {
       ['star', '#ffd21f', 0.55, -41.73, 1.9, 27.0, E], ['bird', '#6ad8ff', 0.6, -41.73, 0.8, 28.4, E], ['eye', '#ffb21f', 0.6, -41.73, 1.5, 29.8, E],
       ['CSILLAG', '#ffd21f', 2.2, -51.98, 1.3, 26, E], ['crown', '#ff5a5a', 0.7, -51.98, 1.7, 30.5, E], ['bolt', '#ffe14a', 0.6, -51.98, 1.0, 19.5, E],
     ];
+    let nTag = 0;
     for (const [k, col, size, x, y, z, ry] of art) {
       const isText = /[A-Z+]{2,}/.test(k);
-      const mesh = isText ? tag(k, col, size * 1.6, size * 0.55) : stencil(k as StencilKind, col, size, Math.random() * 6);
+      const mesh = isText ? sprayTag(5 + 3 * nTag++, col, size * 1.4) : stencil(k as StencilKind, col, size, Math.random() * 6);
       mesh.position.set(x, y, z);
       mesh.rotation.y = ry;
       mesh.rotation.z = (Math.random() - 0.5) * 0.25;
@@ -393,7 +394,7 @@ export class Lakotelep implements GameLevel {
     s1.position.copy(SIGN1);
     this.add(s1);
     this.signs.push(s1);
-    const csTag = tag('CSILLAG', '#7ad0ff', 1.6, 0.55);
+    const csTag = sprayTag(3, '#7ad0ff', 1.3);
     csTag.position.set(e.x0 - 0.02, 1.2, -10.5);
     csTag.rotation.y = -Math.PI / 2;
     this.add(csTag);
@@ -458,7 +459,7 @@ export class Lakotelep implements GameLevel {
       door.rotation.y = -Math.PI / 2;
       this.add(door);
       if (tags[k]) {
-        const t = tag(tags[k], ['#ff5a5a', '#9cff6a', '#ff9de0', '#6ad8ff'][k % 4], 2.3, 0.8, k % 3 === 1);
+        const t = sprayTag([4, 0, 12, 6, 9, 13, 15, 1][k], ['#ff5a5a', '#9cff6a', '#ff9de0', '#6ad8ff', '#e8e2d0'][k % 5], 1.9 + (k % 3) * 0.2);
         t.position.set(g.x0 - 0.02, 1.0 + (k % 2) * 0.25, z0 + 1.5 + ((k * 7) % 5 - 2) * 0.08);
         t.rotation.y = -Math.PI / 2;
         this.add(t);
@@ -633,7 +634,7 @@ export class Lakotelep implements GameLevel {
       const sh = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 2.2), m.garage);
       sh.position.set(x, -1.9, h.z0 + 0.02);
       this.add(sh);
-      const t = name === 'NO FUTURE' ? tag(name, col, 2.2, 0.6) : graffiti(name, col, 2, 0.45);
+      const t = name === 'NO FUTURE' ? sprayTag(7, col, 1.9) : graffiti(name, col, 2, 0.45);
       t.position.set(x, name === 'NO FUTURE' ? -2.2 : -0.85, h.z0 + 0.03);
       this.add(t);
     }
