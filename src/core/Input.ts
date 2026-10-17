@@ -24,6 +24,8 @@ export class Input {
   /** Movement intent in camera space: x = right, y = forward, magnitude 0..1. */
   move = { x: 0, y: 0 };
   sprint = false;
+  /** Held, not pressed: scent mode while down. */
+  scent = false;
   /** Accumulated look delta since last consume (radians-ish units). */
   look = { x: 0, y: 0 };
   lastLookTime = 0;
@@ -72,6 +74,7 @@ export class Input {
     const len = Math.hypot(x, y);
     if (len > 1) { x /= len; y /= len; }
     this.sprint = this.keys.has('ShiftLeft') || this.keys.has('ShiftRight');
+    this.scent = this.keys.has('KeyF');
 
     const pad = navigator.getGamepads?.().find((p) => p && p.connected);
     if (pad) {
@@ -87,6 +90,7 @@ export class Input {
       }
       // Stick fully pushed = run, like most third-person games; RT/LB also sprint.
       if (Math.hypot(lx, ly) > 0.92 || pad.buttons[7]?.pressed || pad.buttons[4]?.pressed) this.sprint = true;
+      if (pad.buttons[1]?.pressed || pad.buttons[6]?.pressed) this.scent = true;
       for (const [i, a] of PAD_ACTIONS) {
         const down = !!pad.buttons[i]?.pressed;
         if (down && !this.padPrev[i]) { this.pressed.add(a); this.usingPad = true; }

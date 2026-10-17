@@ -4,6 +4,7 @@ import { createMaterials, worldUVBox, neonSign, type Materials } from './materia
 import type { Interactions } from '../gameplay/Interactions';
 import type { Audio } from '../core/Audio';
 import type { Cat } from '../player/Cat';
+import type { GameLevel, EndSummary } from './types';
 
 /**
  * Greybox vertical slice: "Esős sikátor" (rainy alley).
@@ -14,13 +15,13 @@ import type { Cat } from '../player/Cat';
  *
  * All numbers are metres. Cat ≈ 0.58 m long, jump reach ≈ 2.2 m up / 3 m across.
  */
-export class Level {
+export class Level implements GameLevel {
   readonly group = new THREE.Group();
   readonly spawn = new THREE.Vector3(0, 0, 6.4);
   readonly spawnYaw = Math.PI; // facing -Z, into the alley
   readonly goalPoint = new THREE.Vector3(-5.6, 5.55, -4.2);
 
-  onGoal: () => void = () => {};
+  onGoal: (s?: EndSummary) => void = () => {};
   /** Progress flags the HUD reads. */
   flags = { scratched: false, robotRubbed: false, cansKnocked: 0, reachedBalcony: false, reachedRoof: false };
 
@@ -323,7 +324,7 @@ export class Level {
       onInteract: () => {
         const c = this.cat();
         c.doNap();
-        setTimeout(() => this.onGoal(), 2600);
+        setTimeout(() => this.onGoal({ kicker: 'zzz', title: 'Szundi.', lede: 'A régi sikátor-greybox vége. A vertical slice a lakótelepen fut (URL paraméter nélkül).' }), 2600);
       },
     });
   }
@@ -403,6 +404,19 @@ export class Level {
   }
 
   /** Reset the dynamic bits for a replay. */
+  objectiveHTML() {
+    const f = this.flags;
+    let main: string;
+    if (f.reachedRoof) main = 'Keresd a <b>meleg szellőzőt</b> a tetőn, és szundíts egyet.';
+    else if (f.reachedBalcony) main = 'Tovább: a <b>cégéren</b> át a túloldali párkányra, onnan a tetőre.';
+    else main = 'Juss fel a <b>tetőre</b> — a ládákon és a klímán át az erkélyre.';
+    const side: string[] = [];
+    if (f.scratched) side.push('karmolás ✓');
+    if (f.robotRubbed) side.push('robotbarát ✓');
+    if (f.cansKnocked) side.push(`lelökött dobozok: ${f.cansKnocked}/3`);
+    return main + (side.length ? `<br><small>${side.join(' · ')}</small>` : '');
+  }
+
   reset() {
     for (const c of this.cans) {
       c.body.setTranslation(c.home, true);

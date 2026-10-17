@@ -1,4 +1,4 @@
-# Veronicat — technikai váz (vertical slice v0.1)
+# Veronicat — technikai váz (vertical slice v0.2)
 
 Ez a dokumentum a **technológiai** alapot írja le. A világ, a történet és a látvány a
 design dokumentumból jön (Veronika, art director) — a kód úgy van felépítve, hogy ezek
@@ -45,7 +45,14 @@ src/
   player/JumpFinder.ts    Stray-szerű ugráscél-kereső + közös ívfüggvény
   camera/FollowCamera.ts  harmadik személyű kamera ütközéssel
   gameplay/Interactions.ts interakció-regiszter
-  world/Level.ts          a greybox sikátor + NPC + cél
+  world/types.ts          GameLevel interfész (minden pálya ezt valósítja meg)
+  world/Lakotelep.ts      v0.2 slice: Csillag-lakótelep, 1–3. fejezet + sztori-beatek
+  world/props.ts          panelház, lámpa, fa, busz, Bori-féle cicajel, graffiti
+  world/Level.ts          v0.1 greybox sikátor (?level=alley)
+  story/Script.ts         korutin-futtató játékidőn (wait / until / say), reset-biztos
+  story/Dialogue.ts       feliratok, fejezetkártya, Füst-tipp (DOM)
+  npc/Human.ts            procedurális placeholder ember (járás, guggolás, fejfordítás)
+  gameplay/Scent.ts       szagmód: deszaturálás + sárga szagnyom-részecskék
   world/materials.ts      greybox anyagkészlet (1 m-es rács), neon táblák
   world/Rain.ts           eső
 public/models/cat.glb     optimalizált Meshy cica (statikus, rig nélkül)
@@ -73,4 +80,9 @@ npm run build          # dist/
 ```
 
 Debug: `` ` `` (backtick) vagy `?debug` az URL-ben → fizikai drótváz + állapot-kiírás.
-Konzolból: `__game.cat.teleport(...)`, `__game.advance(n)`.
+Ugrás egy beatre: `?beat=courtyard|garage|bus|underpass`. Régi sikátor: `?level=alley`.
+
+Fej nélküli teszt (rejtett fülön a rAF áll): `__game.start()`, `await __game.tick(n)`
+(képkocka + a sztori-promise-ok lefutása), `await __game.walk(x, z)`, `await __game.jump(dx, dz)`,
+`__game.face(v)`, `__game.key('KeyE')`, `__game.focused()`, `__game.level.flags`.
+Vigyázat: ha közben valaki játszik ugyanabban a fülben, a teszt és a játékos egymásba lép.

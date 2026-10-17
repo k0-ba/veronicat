@@ -171,3 +171,98 @@ button:active { transform: scale(0.98); }
 }
 .controls dd { margin: 0; color: var(--ink-dim); align-self: center; }
 .hint { font-size: 12px; color: var(--ink-dim); margin: 12px 0 0; }
+
+/* ── story layer: subtitles, chapter card, Füst's hints ── */
+#subs {
+  position: absolute;
+  left: 50%;
+  bottom: 104px;
+  transform: translateX(-50%);
+  width: min(720px, calc(100vw - 32px));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.sub {
+  padding: 6px 14px;
+  border-radius: 10px;
+  background: rgba(8, 10, 14, 0.62);
+  font-size: 17px;
+  line-height: 1.35;
+  text-align: center;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+  animation: subIn 0.25s ease-out;
+  transition: opacity 0.4s;
+}
+.sub.out { opacity: 0; }
+.sub i { color: var(--ink-dim); }
+.who { font-weight: 700; margin-right: 8px; }
+.who::after { content: ':'; }
+@keyframes subIn { from { opacity: 0; transform: translateY(6px); } }
+
+#card {
+  position: absolute;
+  top: 30%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 1.2s;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.8);
+}
+#card.show { opacity: 1; }
+.card-sub {
+  font: 12px ui-monospace, monospace;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.card-title {
+  margin-top: 8px;
+  font-size: clamp(30px, 6vw, 56px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+#hint {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(520px, calc(100vw - 32px));
+  text-align: center;
+  font-size: 15px;
+  font-style: italic;
+  color: var(--ink);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8);
+  opacity: 0;
+  transition: opacity 0.6s;
+}
+#hint.show { opacity: 1; }
+#hint b { color: #ffd23f; font-style: normal; }
+#objective small { font-size: 12px; opacity: 0.85; }
+#objective small.dim { opacity: 0.5; }
+
+/* Szagmód: warm vignette over the desaturated canvas. */
+#vignette {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.35s;
+  background: radial-gradient(ellipse at 50% 55%, transparent 45%, rgba(40, 28, 0, 0.55) 100%);
+}
+body.scent #vignette { opacity: 1; }
+
+/* End card summary */
+.panel { max-height: calc(100vh - 32px); overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(243, 236, 226, 0.22) transparent; }
+.panel::-webkit-scrollbar { width: 8px; }
+.panel::-webkit-scrollbar-track { background: transparent; }
+.panel::-webkit-scrollbar-thumb { background: rgba(243, 236, 226, 0.18); border-radius: 8px; }
+.panel::-webkit-scrollbar-thumb:hover { background: rgba(255, 179, 107, 0.5); }
+.summary { list-style: none; padding: 0; margin: -6px 0 22px; display: grid; gap: 6px; font-size: 14px; }
+.summary:empty { display: none; }
+.summary li { color: var(--ink-dim); }
+.summary li::before { content: '○'; display: inline-block; width: 22px; color: var(--ink-dim); }
+.summary li.done { color: var(--ink); }
+.summary li.done::before { content: '●'; color: var(--warm); }

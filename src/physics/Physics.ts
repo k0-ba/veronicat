@@ -69,6 +69,17 @@ export class Physics {
     );
   }
 
+  /** Fixed box with an arbitrary rotation (ramps, tilted roofs). */
+  addFixedBoxQ(center: THREE.Vector3, size: THREE.Vector3, q: THREE.Quaternion, friction = 0.8) {
+    const body = this.world.createRigidBody(
+      RAPIER.RigidBodyDesc.fixed().setTranslation(center.x, center.y, center.z).setRotation({ x: q.x, y: q.y, z: q.z, w: q.w }),
+    );
+    return this.world.createCollider(
+      RAPIER.ColliderDesc.cuboid(size.x / 2, size.y / 2, size.z / 2).setFriction(friction),
+      body,
+    );
+  }
+
   addDynamic(mesh: THREE.Object3D, desc: RAPIER.ColliderDesc, opts: { mass?: number } = {}) {
     const q = mesh.quaternion;
     const body = this.world.createRigidBody(

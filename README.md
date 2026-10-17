@@ -1,14 +1,16 @@
 # Veronicat
 
-Cicás 3D böngészős játék (a Stray-ből merítve, saját világgal). Ez a **vertical slice /
-technikai váz**: egy esős sikátor greyboxban, végigjátszható úttal a tetőig.
+Cicás 3D böngészős játék (a Stray-ből merítve, saját világgal). **Vertical slice v0.2**:
+Füst, Bori macskája egy esős októberi estén a Csillag-lakótelepen — 1. Üres ablak,
+2. Garázssor, 3. Buszmegálló (Gábor), vége az aluljárónál. Terv: [docs/VERTICAL_SLICE.md](docs/VERTICAL_SLICE.md).
+A v0.1 sikátor-greybox: `?level=alley`.
 
 - Élő: https://veronicat.holoesthesia.workers.dev/
 - Lokálisan: `npm install && npm run dev` → http://localhost:5181/
 - Technikai leírás: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 Vezérlés: WASD séta · Shift futás · egér kamera · Space ugrás a kijelölt pontra ·
-E interakció · Q nyávogás · R újrakezdés · `` ` `` debug. Gamepad is megy.
+E interakció · Q nyávogás · F szagmód (tartsd) · R újrakezdés · `` ` `` debug. Gamepad is megy.
 
 Eredeti cica asset: `cat-in-motion-3d-model-free.zip` (Meshy AI) → `public/models/cat.glb`:
 

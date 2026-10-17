@@ -21,12 +21,15 @@ const SAFE_DROP = 0.45;
 /** Visual length of the cat in metres; the GLB is scaled to this. */
 const CAT_LENGTH = 0.58;
 
-export type CatState = 'ground' | 'crouch' | 'jump' | 'land' | 'fall' | 'scratch' | 'nap' | 'swipe';
+export type CatState = 'ground' | 'crouch' | 'jump' | 'land' | 'fall' | 'scratch' | 'nap' | 'swipe' | 'eat' | 'sniff';
 
 export class Cat {
   root = new THREE.Group();            // positioned at feet, yawed
   private visual = new THREE.Group();  // procedural animation layer
   private modelHolder = new THREE.Group();
+  /** Things carried in the mouth get parented here. */
+  mouth = new THREE.Group();
+  carrying: THREE.Object3D | null = null;
 
   body!: RigidBody;
   collider!: Collider;
@@ -52,6 +55,8 @@ export class Cat {
     this.jumpFinder = new JumpFinder(physics);
     this.root.add(this.visual);
     this.visual.add(this.modelHolder);
+    this.mouth.position.set(0, 0.15, CAT_LENGTH * 0.52);
+    this.visual.add(this.mouth);
     this.buildPlaceholder();
     this.createBody(spawn);
   }
@@ -122,7 +127,8 @@ export class Cat {
   }
 
   get busy() {
-    return this.state === 'jump' || this.state === 'crouch' || this.state === 'scratch' || this.state === 'nap' || this.state === 'swipe';
+    return this.state === 'jump' || this.state === 'crouch' || this.state === 'scratch' || this.state === 'nap'
+      || this.state === 'swipe' || this.state === 'eat' || this.state === 'sniff';
   }
 
   /** Forward (facing) direction on the XZ plane. */
@@ -159,6 +165,16 @@ export class Cat {
   doScratch() { if (!this.busy) { this.setState('scratch'); this.audio.scratch(); } }
   doSwipe() { if (!this.busy) this.setState('swipe'); }
   doNap() { this.setState('nap'); this.audio.purr(4); }
+  private actionDur = 1;
+  doEat(seconds = 2.4) { if (!this.busy) { this.actionDur = seconds; this.setState('eat'); this.audio.purr(seconds + 0.5); } }
+  doSniff() { if (!this.busy) { this.actionDur = 1.1; this.setState('sniff'); this.audio.sniff(); } }
+
+  /** Pick something up in the mouth (drops whatever was carried before). */
+  carry(obj: THREE.Object3D | null) {
+    if (this.carrying) this.mouth.remove(this.carrying);
+    this.carrying = obj;
+    if (obj) { obj.position.set(0, 0, 0); obj.rotation.set(0, 0, 0); this.mouth.add(obj); }
+  }
 
   /**
    * Fixed-step update.
@@ -182,6 +198,10 @@ export class Cat {
         if (this.stateTime > 0.35) this.setState('ground');
         break;
       case 'nap': break;
+      case 'eat':
+      case 'sniff':
+        if (this.stateTime > this.actionDur) this.setState('ground');
+        break;
       case 'land':
         if (this.stateTime > 0.12) this.setState('ground');
         this.walk(dt, moveWorld.multiplyScalar(0.3), false);
@@ -327,6 +347,15 @@ export class Cat {
       const t = this.stateTime / 0.35;
       pitch = -Math.sin(t * Math.PI) * 0.3;
       roll = Math.sin(t * Math.PI) * 0.25;
+    }
+    if (this.state === 'eat') {
+      // Head down, rhythmic lapping.
+      pitch = 0.32 + Math.sin(this.stateTime * 14) * 0.04;
+      sy = 0.9;
+    }
+    if (this.state === 'sniff') {
+      pitch = 0.22 + Math.sin(this.stateTime * 22) * 0.025;
+      bob = -0.01;
     }
     if (this.state === 'nap') {
       const t = Math.min(1, this.stateTime / 0.8);

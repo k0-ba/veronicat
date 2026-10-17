@@ -10,6 +10,10 @@ import { Audio } from './core/Audio';
 import { Cat } from './player/Cat';
 import { FollowCamera } from './camera/FollowCamera';
 import { Level } from './world/Level';
+import { Lakotelep } from './world/Lakotelep';
+import type { GameLevel, EndSummary } from './world/types';
+import { Dialogue } from './story/Dialogue';
+import { Scent } from './gameplay/Scent';
 import { Rain } from './world/Rain';
 import { Interactions } from './gameplay/Interactions';
 import { HUD } from './ui/HUD';
@@ -54,8 +58,16 @@ async function boot() {
   const hud = new HUD();
   const interactions = new Interactions();
 
+  const params = new URLSearchParams(location.search);
+  const dialogue = new Dialogue();
+  const scent = new Scent(canvas);
+  scene.add(scent.points);
+
   let cat!: Cat;
-  const level = new Level(scene, physics, interactions, audio, () => cat);
+  // Default: the lakótelep slice. `?level=alley` = the original greybox alley.
+  const level: GameLevel = params.get('level') === 'alley'
+    ? new Level(scene, physics, interactions, audio, () => cat)
+    : new Lakotelep(scene, physics, interactions, audio, () => cat, dialogue);
   cat = new Cat(physics, audio, level.spawn);
   cat.yaw = level.spawnYaw;
   scene.add(cat.root);
@@ -85,7 +97,7 @@ async function boot() {
   const debugLines = new THREE.LineSegments(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ vertexColors: true }));
   debugLines.frustumCulled = false;
   scene.add(debugLines);
-  hud.debugVisible = new URLSearchParams(location.search).has('debug');
+  hud.debugVisible = params.has('debug');
 
   // ── start screen ──
   const loadingEl = document.getElementById('loading')!;
@@ -101,6 +113,14 @@ async function boot() {
   startBtn.hidden = false;
 
   let running = false;
+  let begun = false;
+  const begin = () => {
+    begun = true;
+    level.begin?.();
+    // Debug: `?beat=courtyard|garage|bus|underpass` jumps into the story.
+    const beat = params.get('beat');
+    if (beat && level instanceof Lakotelep) level.skipTo(beat);
+  };
   const start = () => {
     titleEl.hidden = true;
     endEl.hidden = true;
@@ -108,20 +128,38 @@ async function boot() {
     input.lock();
     input.clearPressed();
     running = true;
+    if (!begun) begin();
   };
   startBtn.onclick = start;
   document.getElementById('again')!.onclick = () => { resetGame(); start(); };
 
-  level.onGoal = () => {
+  level.onGoal = (summary?: EndSummary) => {
     running = false;
     document.exitPointerLock?.();
+    if (summary) {
+      endEl.querySelector('.kicker')!.textContent = summary.kicker;
+      endEl.querySelector('h1')!.textContent = summary.title;
+      endEl.querySelector('.lede')!.textContent = summary.lede;
+      const list = endEl.querySelector('.summary')!;
+      list.innerHTML = '';
+      for (const it of summary.items ?? []) {
+        const li = document.createElement('li');
+        li.className = it.done ? 'done' : '';
+        li.textContent = it.label;
+        list.appendChild(li);
+      }
+    }
     endEl.hidden = false;
   };
 
   const resetGame = () => {
     level.reset();
+    cat.carry(null);
+    dialogue.clearAll();
     cat.teleport(level.spawn, level.spawnYaw);
     follow.snapBehind(cat.yaw, cat.root.position.clone().add(new THREE.Vector3(0, 0.25, 0)));
+    begun = false;
+    if (running) begin();
   };
 
   // ── loop ──
@@ -152,7 +190,6 @@ async function boot() {
     if (running) {
       if (input.consume('reset')) resetGame();
       if (input.consume('debug')) hud.debugVisible = !hud.debugVisible;
-      if (input.consume('meow')) { audio.meow(); level.meow(cat.feet); hud.toast('Miáú', 700); }
 
       // Jump target scan (every 3rd frame) — aim with stick if moving, else with camera.
       if (cat.state === 'ground' && ++scanTick % 3 === 0) {
@@ -164,7 +201,14 @@ async function boot() {
 
       const focused = interactions.update(cat.feet, cat.forward(), cat.busy || cat.state !== 'ground');
       if (input.consume('jump') && target) cat.startJump(target);
-      if (input.consume('interact') && focused) focused.onInteract();
+      const focusAction = focused?.action ?? 'interact';
+      if (input.consume('interact') && focused && focusAction === 'interact') focused.onInteract();
+      if (input.consume('meow')) {
+        audio.meow();
+        level.meow(cat.feet);
+        hud.toast('Miáú', 700);
+        if (focused && focusAction === 'meow') focused.onInteract();
+      }
       input.consume('jump'); // drop stale presses
 
       const prompts: Array<{ key: string; label: string }> = [];
@@ -192,6 +236,8 @@ async function boot() {
     physics.syncMeshes(alpha);
     cat.render(alpha, dt, time);
     level.update(dt, time);
+    scent.update(dt, time, running && input.scent, level.scentTrail?.());
+    level.setScentMode?.(scent.active);
 
     follow.update(dt, cat.root.position.clone().add(new THREE.Vector3(0, 0.25, 0)), look, {
       catYaw: cat.yaw,
@@ -211,7 +257,7 @@ async function boot() {
       ring.scale.setScalar(s);
     }
 
-    objective(level, hud);
+    hud.setObjective(running || begun ? level.objectiveHTML() : '');
 
     if (hud.debugVisible) {
       const { vertices, colors } = physics.world.debugRender();
@@ -235,23 +281,39 @@ async function boot() {
   requestAnimationFrame((t) => frame(t));
 
   // Handle for automated tests / console tinkering.
-  (window as any).__game = { cat, level, physics, follow, input, resetGame, start,
+  (window as any).__game = { cat, level, physics, follow, input, resetGame, start, dialogue, scent,
     /** Advance n frames by hand (for headless tests where rAF is paused). */
     advance(n = 1) { for (let i = 0; i < n; i++) frame(last + 1000 / 60, true); },
-    get target() { return target; } };
-}
-
-function objective(level: Level, hud: HUD) {
-  const f = level.flags;
-  let main: string;
-  if (f.reachedRoof) main = 'Keresd a <b>meleg szellőzőt</b> a tetőn, és szundíts egyet.';
-  else if (f.reachedBalcony) main = 'Tovább: a <b>cégéren</b> át a túloldali párkányra, onnan a tetőre.';
-  else main = 'Juss fel a <b>tetőre</b> — a ládákon és a klímán át az erkélyre.';
-  const side: string[] = [];
-  if (f.scratched) side.push('karmolás ✓');
-  if (f.robotRubbed) side.push('robotbarát ✓');
-  if (f.cansKnocked) side.push(`lelökött dobozok: ${f.cansKnocked}/3`);
-  hud.setObjective(main + (side.length ? `<br><small>${side.join(' · ')}</small>` : ''));
+    get target() { return target; },
+    // ── test kit: drive the game headlessly (rAF is paused in hidden tabs) ──
+    /** Advance n frames, letting story coroutines (promises) settle between them. */
+    async tick(n = 1) { for (let i = 0; i < n; i++) { this.advance(1); for (let k = 0; k < 8; k++) await null; } },
+    pos: () => cat.feet.toArray().map((v) => +v.toFixed(2)).join(',') + ' ' + cat.state,
+    async walk(x: number, z: number, frames = 600, run = true) {
+      for (let i = 0; i < frames; i++) {
+        const d = new THREE.Vector3(x - cat.feet.x, 0, z - cat.feet.z);
+        const len = d.length();
+        if (len < 0.12) break;
+        cat.fixedUpdate(FIXED_DT, d.normalize().multiplyScalar(len < 0.6 ? 0.4 : 1), run && len > 0.6);
+        physics.step();
+        await this.tick(1);
+      }
+      return this.pos();
+    },
+    async jump(x: number, z: number) {
+      const t = cat.jumpFinder.update(cat.feet, new THREE.Vector3(x, 0, z).normalize());
+      if (!t) return 'none @' + this.pos();
+      cat.startJump(t);
+      await this.tick(90);
+      return `${t.kind} → ${this.pos()}`;
+    },
+    face(p: THREE.Vector3) { cat.yaw = Math.atan2(p.x - cat.feet.x, p.z - cat.feet.z); },
+    key(code: string) {
+      dispatchEvent(new KeyboardEvent('keydown', { code }));
+      dispatchEvent(new KeyboardEvent('keyup', { code }));
+    },
+    focused: () => interactions.focused?.id ?? null,
+  };
 }
 
 boot().catch((e) => {
