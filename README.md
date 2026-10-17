@@ -7,7 +7,7 @@ Szotyi, Bori macskája egy esős októberi estén a Csillag-lakótelepen — 1. 
 A v0.1 sikátor-greybox: `?level=alley`.
 
 - Élő: https://veronicat.pages.dev/
-- Repó: https://github.com/k0-ba/veronicat (privát)
+- Repó: https://github.com/k0-ba/veronicat (nyilvános)
 - Lokálisan: `npm install && npm run dev` → http://localhost:5181/
 - Technikai leírás: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
