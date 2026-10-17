@@ -43,6 +43,9 @@ src/
   core/Settings.ts        beállítások (hang, érzékenység, FOV, grafika, nyelv) → localStorage, élő onChange
   ui/Menu.ts              cím- és szünetmenü + Beállítások / Irányítás / Készítők; egér, billentyű, gamepad
   ui/i18n.ts              UI-szövegek (hu alap, en a menükhöz és promptokhoz)
+  ui/StoryTree.ts         történetfa-nézet (N): rétegezett kártyák + SVG élek, bármilyen pályához
+  world/storyTree.ts      történetfa-típusok + evaluateStory (bejárva / most / elérhető / zárva)
+  world/lakotelepStory.ts a slice fejezetei a Lakotelep flags/stage-ből + a NARRATIVA.md további fái
   physics/Physics.ts      Rapier wrapper, ray-helper, dinamikus mesh-szinkron
   player/Cat.ts           karakter: KCC, állapotgép, procedurális animáció
   player/JumpFinder.ts    Stray-szerű ugráscél-kereső + közös ívfüggvény

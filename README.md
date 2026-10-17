@@ -10,7 +10,7 @@ A v0.1 sikátor-greybox: `?level=alley`.
 - Technikai leírás: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 Vezérlés: WASD séta · Shift futás · egér kamera · Space ugrás a kijelölt pontra ·
-E interakció · Q nyávogás · F szagmód (tartsd) · R újrakezdés · Esc szünet/menü · `` ` `` debug. Gamepad is megy (Start menü, Select újrakezdés).
+E interakció · Q nyávogás · F szagmód (tartsd) · R újrakezdés · Esc szünet/menü · N történetfa · `` ` `` debug. Gamepad is megy (Start menü, Select újrakezdés).
 
 Cica asset (rigelt, animált): Quaternius „Animal Pack Vol.2” — **CC0**
 (<https://opengameart.org/content/animated-animales-low-poly>). A klipeket

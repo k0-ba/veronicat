@@ -5,12 +5,13 @@
 export class Audio {
   private ctx: AudioContext | null = null;
   private master!: GainNode;
-  /** Buses under master: the speaker music, and everything else (rain, engine, cat). */
+  /** Buses under master: the speaker music, ambience (rain), and everything else. */
   private musicBus!: GainNode;
+  private ambience!: GainNode;
   private sfx!: GainNode;
   private noiseBuf!: AudioBuffer;
   /** Volumes 0..1 from settings; kept here so they apply even before start(). */
-  private vol = { master: 0.8, music: 0.8, sfx: 0.8 };
+  private vol = { master: 0.8, music: 0.8, ambience: 0.8, sfx: 0.8 };
 
   /** Must be called from a user gesture. */
   start() {
@@ -20,6 +21,8 @@ export class Audio {
     this.master.connect(this.ctx.destination);
     this.musicBus = this.ctx.createGain();
     this.musicBus.connect(this.master);
+    this.ambience = this.ctx.createGain();
+    this.ambience.connect(this.master);
     this.sfx = this.ctx.createGain();
     this.sfx.connect(this.master);
     this.applyVolumes();
@@ -30,8 +33,8 @@ export class Audio {
     this.rainLoop();
   }
 
-  setVolumes(master: number, music: number, sfx: number) {
-    this.vol = { master, music, sfx };
+  setVolumes(master: number, music: number, ambience: number, sfx: number) {
+    this.vol = { master, music, ambience, sfx };
     this.applyVolumes();
   }
 
@@ -41,6 +44,7 @@ export class Audio {
     // 0.75 keeps the old 0.6 master level at the 0.8 default.
     this.master.gain.setTargetAtTime(this.vol.master * 0.75, c.currentTime, 0.03);
     this.musicBus.gain.setTargetAtTime(this.vol.music, c.currentTime, 0.03);
+    this.ambience.gain.setTargetAtTime(this.vol.ambience, c.currentTime, 0.03);
     this.sfx.gain.setTargetAtTime(this.vol.sfx, c.currentTime, 0.03);
   }
 
@@ -68,8 +72,9 @@ export class Audio {
     hp.type = 'highpass';
     hp.frequency.value = 300;
     const g = c.createGain();
-    g.gain.value = 0.09;
-    src.connect(hp).connect(lp).connect(g).connect(this.sfx);
+    // Was 0.09: too present under dialogue. Bed level now, with its own slider on top.
+    g.gain.value = 0.035;
+    src.connect(hp).connect(lp).connect(g).connect(this.ambience);
   }
 
   meow(pitch = 1) {

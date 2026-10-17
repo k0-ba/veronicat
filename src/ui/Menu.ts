@@ -1,18 +1,22 @@
 import type { Settings, SettingsData } from '../core/Settings';
 import { t, setLang, type StringKey } from './i18n';
+import type { StoryNode } from '../world/storyTree';
+import { renderStoryTree } from './StoryTree';
 
 /**
  * Title + pause menu with Settings / Controls / Credits pages, built into #title.
  * Navigation is one flat list of controls per page, so mouse, keyboard and gamepad
  * all drive the same focus index: ↑↓ move, ←→ adjust, Enter/A activate, Esc/B back.
  */
-type Page = 'root' | 'settings' | 'controls' | 'credits';
+type Page = 'root' | 'settings' | 'controls' | 'credits' | 'story';
 type Mode = 'title' | 'pause';
 
 export interface MenuHandlers {
   play(): void;
   resume(): void;
   restart(): void;
+  /** Live story tree of the current level, or null if it has none. */
+  story(): StoryNode[] | null;
 }
 
 interface Ctl {
@@ -36,12 +40,16 @@ export class Menu {
   private padPrev: boolean[] = [];
   private padDir = '';
   private padNext = 0;
+  /** Root items that open a page, in render order, so Back lands on the right one. */
+  private rootPages: Page[] = [];
+  private relayout: (() => void) | null = null;
 
   constructor(private el: HTMLElement, private settings: Settings, private h: MenuHandlers) {
     this.panel = el.querySelector('.panel')!;
     // Registered after Input's own keydown listener, so a resume here clears the
     // Esc that Input just recorded instead of racing it.
     addEventListener('keydown', (e) => this.onKey(e));
+    addEventListener('resize', () => this.relayout?.());
     settings.onChange((s, key) => {
       if (key === 'lang' || key === null) {
         setLang(s.lang);
@@ -65,6 +73,14 @@ export class Menu {
     this.render(0);
   }
 
+  /** Open (or switch to) a page directly, e.g. the story tree on N. */
+  show(mode: Mode, page: Page) {
+    if (!this.isOpen || this.mode !== mode) this.open(mode);
+    this.go(page);
+  }
+
+  get currentPage() { return this.page; }
+
   close() {
     this.isOpen = false;
     this.el.hidden = true;
@@ -78,6 +94,8 @@ export class Menu {
     p.innerHTML = '';
     this.ctls = [];
     p.classList.toggle('menu-wide', this.page === 'settings');
+    p.classList.toggle('menu-story', this.page === 'story');
+    this.relayout = null;
 
     const kicker = div('kicker', this.mode === 'pause' ? t('paused') : t('kicker'));
     p.append(kicker);
@@ -92,11 +110,14 @@ export class Menu {
     if (this.page === 'root') this.buildRoot(body);
     else if (this.page === 'settings') this.buildSettings(body);
     else if (this.page === 'controls') this.buildControls(body);
+    else if (this.page === 'story') focus = this.buildStory(body, focus);
     else this.buildCredits(body);
 
     p.append(div('menu-hint', `${t('navHint')}<br>${t('padHint')}`));
-    this.setFocus(Math.min(focus, this.ctls.length - 1), false);
     p.scrollTop = 0;
+    // buildStory sets it; TS can't see that through the call.
+    (this.relayout as (() => void) | null)?.();
+    this.setFocus(Math.min(focus, this.ctls.length - 1), this.page === 'story');
   }
 
   private buildRoot(body: HTMLElement) {
@@ -106,15 +127,18 @@ export class Menu {
       list.append(div('menu-loading', t('loading')));
       return;
     }
+    this.rootPages = [];
     if (this.mode === 'title') {
       this.button(list, t('play'), () => this.h.play(), true);
     } else {
       this.button(list, t('resume'), () => this.h.resume(), true);
       this.button(list, t('restart'), () => this.h.restart());
     }
-    this.button(list, t('settings'), () => this.go('settings'));
-    this.button(list, t('controls'), () => this.go('controls'));
-    this.button(list, t('credits'), () => this.go('credits'));
+    const pages: Array<Exclude<Page, 'root'>> = this.mode === 'pause' && this.h.story() ? ['story', 'settings', 'controls', 'credits'] : ['settings', 'controls', 'credits'];
+    for (const pg of pages) {
+      this.rootPages.push(pg);
+      this.button(list, t(pg), () => this.go(pg));
+    }
   }
 
   private buildSettings(body: HTMLElement) {
@@ -123,6 +147,7 @@ export class Menu {
     body.append(div('set-sec', t('secAudio')));
     this.slider(body, 'masterVolume', 0, 1, 0.05, pct);
     this.slider(body, 'musicVolume', 0, 1, 0.05, pct);
+    this.slider(body, 'ambienceVolume', 0, 1, 0.05, pct);
     this.slider(body, 'sfxVolume', 0, 1, 0.05, pct);
 
     body.append(div('set-sec', t('secControls')));
@@ -148,7 +173,7 @@ export class Menu {
   private buildControls(body: HTMLElement) {
     const rows: Array<[string, StringKey]> = [
       ['WASD', 'cWalk'], ['Shift', 'cRun'], [t('mouse'), 'cLook'], ['Space', 'cJump'],
-      ['E', 'cInteract'], ['Q', 'cMeow'], ['F', 'cScent'], ['R', 'cReset'], ['Esc', 'cPause'],
+      ['E', 'cInteract'], ['Q', 'cMeow'], ['F', 'cScent'], ['R', 'cReset'], ['Esc', 'cPause'], ['N', 'cStory'],
     ];
     const dl = el('dl', 'controls');
     for (const [k, v] of rows) dl.append(el('dt', '', k), el('dd', '', t(v)));
@@ -174,6 +199,24 @@ export class Menu {
     this.button(list, t('back'), () => this.back(), true);
   }
 
+  private buildStory(body: HTMLElement, focus: number) {
+    const nodes = this.h.story();
+    body.append(el('p', 'lede story-lede', `${t('storyLede')}`));
+    if (!nodes) {
+      body.append(el('p', 'hint', t('noStory')));
+    } else {
+      const tree = renderStoryTree(nodes);
+      body.append(tree.el);
+      for (const c of tree.focusables) this.add(null, { el: c });
+      this.relayout = tree.layoutEdges;
+      if (focus === 0) focus = tree.currentIdx;
+    }
+    const list = div('menu-list menu-foot');
+    body.append(list);
+    this.button(list, t('back'), () => this.back(), true);
+    return focus;
+  }
+
   private go(page: Page) {
     this.page = page;
     this.render(0);
@@ -183,9 +226,10 @@ export class Menu {
     if (this.page !== 'root') {
       const from = this.page;
       this.page = 'root';
+      this.render(0);
       // Land back on the item that opened the page.
-      const order: Page[] = ['settings', 'controls', 'credits'];
-      this.render(order.indexOf(from) + (this.mode === 'pause' ? 2 : 1));
+      const i = this.rootPages.indexOf(from);
+      if (i >= 0) this.setFocus(i + (this.mode === 'pause' ? 2 : 1), false);
     } else if (this.mode === 'pause' && performance.now() - this.openedAt > 250) {
       // The 250 ms guard: the Esc that broke pointer lock can arrive after the menu opened.
       this.h.resume();
@@ -201,7 +245,7 @@ export class Menu {
     this.add(parent, { el: b, activate: fn });
   }
 
-  private slider<K extends 'masterVolume' | 'musicVolume' | 'sfxVolume' | 'sensitivity' | 'fov'>(
+  private slider<K extends 'masterVolume' | 'musicVolume' | 'ambienceVolume' | 'sfxVolume' | 'sensitivity' | 'fov'>(
     parent: HTMLElement, key: K, min: number, max: number, step: number, fmt: (v: number) => string,
   ) {
     const s = this.settings;
@@ -261,13 +305,14 @@ export class Menu {
     this.add(parent, { el: row, activate: () => step(1), adjust: step });
   }
 
-  private add(parent: HTMLElement, c: Ctl) {
+  /** `parent` null: the element is already in the page (story cards). */
+  private add(parent: HTMLElement | null, c: Ctl) {
     const i = this.ctls.length;
     this.ctls.push(c);
     c.el.classList.add('mi');
     c.el.addEventListener('mouseenter', () => this.setFocus(i, false));
     c.el.addEventListener('focus', () => { if (this.focusIdx !== i) this.setFocus(i, false); });
-    parent.append(c.el);
+    parent?.append(c.el);
   }
 
   private setFocus(i: number, scroll = true) {
@@ -292,6 +337,10 @@ export class Menu {
       case 'ArrowRight': case 'KeyD': c?.adjust?.(1); break;
       case 'Enter': case 'NumpadEnter': case 'Space': if (!e.repeat) c?.activate?.(); break;
       case 'Escape': case 'Backspace': if (!e.repeat) this.back(); break;
+      case 'KeyN':
+        if (e.repeat || this.mode !== 'pause' || !this.h.story()) return;
+        if (this.page === 'story') this.h.resume(); else this.go('story');
+        break;
       default: return;
     }
     e.preventDefault();

@@ -2,7 +2,7 @@
  * Unified input: keyboard + mouse (pointer lock) + standard gamepad.
  * Gameplay code reads *actions*, never raw keys, so rebinding / touch later is one file.
  */
-export type Action = 'jump' | 'interact' | 'meow' | 'reset' | 'debug' | 'pause';
+export type Action = 'jump' | 'interact' | 'meow' | 'reset' | 'debug' | 'pause' | 'story';
 
 const KEY_ACTIONS: Record<string, Action> = {
   Space: 'jump',
@@ -11,6 +11,7 @@ const KEY_ACTIONS: Record<string, Action> = {
   KeyR: 'reset',
   Backquote: 'debug',
   Escape: 'pause',
+  KeyN: 'story',
 };
 
 // Standard gamepad mapping: 0=A 1=B 2=X 3=Y 8=Back/Select 9=Start
@@ -125,7 +126,7 @@ export class Input {
   }
 
   label(a: Action): string {
-    if (this.usingPad) return ({ jump: 'A', interact: 'X', meow: 'Y', reset: '⧉', debug: '-', pause: '≡' } as const)[a];
-    return ({ jump: 'Space', interact: 'E', meow: 'Q', reset: 'R', debug: '`', pause: 'Esc' } as const)[a];
+    if (this.usingPad) return ({ jump: 'A', interact: 'X', meow: 'Y', reset: '⧉', debug: '-', pause: '≡', story: 'N' } as const)[a];
+    return ({ jump: 'Space', interact: 'E', meow: 'Q', reset: 'R', debug: '`', pause: 'Esc', story: 'N' } as const)[a];
   }
 }

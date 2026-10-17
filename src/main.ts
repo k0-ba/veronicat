@@ -20,6 +20,8 @@ import { HUD } from './ui/HUD';
 import { Menu } from './ui/Menu';
 import { Settings } from './core/Settings';
 import { t, tPrompt } from './ui/i18n';
+import { evaluateStory } from './world/storyTree';
+import { LAKOTELEP_STORY } from './world/lakotelepStory';
 import type { JumpTarget } from './player/JumpFinder';
 
 /** The Meshy cat faces -Z in its file; rotate so it faces +Z (the cat's forward). */
@@ -107,7 +109,7 @@ async function boot() {
   const againBtn = document.getElementById('again')!;
   let shadowsOn = renderer.shadowMap.enabled;
   settings.onChange((s) => {
-    audio.setVolumes(s.masterVolume, s.musicVolume, s.sfxVolume);
+    audio.setVolumes(s.masterVolume, s.musicVolume, s.ambienceVolume, s.sfxVolume);
     input.sensitivity = s.sensitivity;
     input.invertY = s.invertY;
     if (camera.fov !== s.fov) { camera.fov = s.fov; camera.updateProjectionMatrix(); }
@@ -137,6 +139,7 @@ async function boot() {
     play: () => start(),
     resume: () => start(),
     restart: () => { resetGame(); start(); },
+    story: () => (level instanceof Lakotelep ? evaluateStory(LAKOTELEP_STORY, level) : null),
   });
   try {
     await cat.loadModel(`${import.meta.env.BASE_URL}models/cat.glb`, CAT_MODEL_YAW);
@@ -231,6 +234,7 @@ async function boot() {
     input.poll(dt);
     menu.update();
     if (running && input.consume('pause')) pause();
+    if (running && input.consume('story') && level instanceof Lakotelep) { pause(); menu.show('pause', 'story'); }
     const look = running ? input.consumeLook() : { x: 0, y: 0 };
     if (paused) {
       // Simulation frozen; keep drawing the scene behind the menu.

@@ -8,6 +8,7 @@ export type Lang = 'hu' | 'en';
 export interface SettingsData {
   masterVolume: number;   // 0..1
   musicVolume: number;    // 0..1
+  ambienceVolume: number; // 0..1 (rain)
   sfxVolume: number;      // 0..1
   sensitivity: number;    // multiplier on the base look speed, 0.25..3
   invertY: boolean;
@@ -21,6 +22,7 @@ export interface SettingsData {
 export const DEFAULT_SETTINGS: SettingsData = {
   masterVolume: 0.8,
   musicVolume: 0.8,
+  ambienceVolume: 0.8,
   sfxVolume: 0.8,
   sensitivity: 1,
   invertY: false,
