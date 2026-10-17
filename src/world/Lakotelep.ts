@@ -71,6 +71,9 @@ export class Lakotelep implements GameLevel {
   private boriLit!: THREE.Texture;
   private boriDark!: THREE.Texture;
   private ilonkaWindow!: THREE.Mesh;
+  private ilonkaClosed!: THREE.Texture;
+  private ilonkaOpen!: THREE.Texture;
+  private setIlonkaOpen(open: boolean) { (this.ilonkaWindow.material as THREE.MeshBasicMaterial).map = open ? this.ilonkaOpen : this.ilonkaClosed; }
   private ilonka!: Human;
   private ilonkaFood!: THREE.Object3D;
   private boys: Human[] = [];
@@ -208,7 +211,9 @@ export class Lakotelep implements GameLevel {
     this.add(this.borisWindow);
 
     // Ilonka's ground-floor window + sill.
-    this.ilonkaWindow = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 1.35), new THREE.MeshBasicMaterial({ map: windowTexture('#ffcf8a', 'curtain') }));
+    this.ilonkaClosed = windowTexture('#ffcf8a', 'curtain');
+    this.ilonkaOpen = windowTexture('#ffd9a0', null);
+    this.ilonkaWindow = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 1.35), new THREE.MeshBasicMaterial({ map: this.ilonkaClosed }));
     this.ilonkaWindow.position.set(ILONKA_WIN.x, 1.55, FACADE_Z + 0.02);
     this.add(this.ilonkaWindow);
     this.box(-14.3, 0, FACADE_Z, -12.7, 0.9, FACADE_Z + 0.42, m.concrete);
@@ -447,9 +452,13 @@ export class Lakotelep implements GameLevel {
   private buildUnderpass() {
     const m = this.mats;
     const p = PIT;
-    // Pit walls (go below ground) with low parapets.
-    this.box(p.x0 - 0.25, -3.3, p.z0, p.x0, 0.9, 20, m.concrete);
-    this.box(p.x1, -3.3, p.z0, p.x1 + 0.25, 0.9, 20, m.concrete);
+    // Pit + tunnel walls stay below ground; the 0.9 m parapets only frame the open pit
+    // (z0..z1) — past z1 the road runs over the tunnel.
+    this.box(p.x0 - 0.25, -3.3, p.z0, p.x0, 0, 20, m.concrete);
+    this.box(p.x1, -3.3, p.z0, p.x1 + 0.25, 0, 20, m.concrete);
+    this.box(p.x0 - 0.25, 0, p.z0, p.x0, 0.9, p.z1, m.concrete);
+    this.box(p.x1, 0, p.z0, p.x1 + 0.25, 0.9, p.z1, m.concrete);
+    this.box(p.x0 - 0.25, 0, p.z1 - 0.25, p.x1 + 0.25, 0.9, p.z1, m.concrete); // south rail over the tunnel mouth
     // Ramp collider under visual steps: from (z0, y0) down to (z1, -3).
     const len = Math.hypot(p.z1 - p.z0, 3);
     const ang = Math.atan2(3, p.z1 - p.z0);
@@ -498,7 +507,9 @@ export class Lakotelep implements GameLevel {
   private buildPeople() {
     // Ilonka néni in her window (no collider — the sill belongs to the cat).
     this.ilonka = new Human({ height: 1.58, build: 1.15, coat: 0x8a5a7a, coatLength: 1, legs: 0x5a4a5a, skin: 0xe0b8a0, hair: 0xb8b0a8, curlers: true });
-    this.ilonka.place(V(ILONKA_WIN.x - 0.3, 0, FACADE_Z + 0.2), 0);
+    // Standing *in* the open window: back half inside the wall, legs hidden by the sill,
+    // only the upper body leans out over the sill.
+    this.ilonka.place(V(ILONKA_WIN.x - 0.25, 0, FACADE_Z - 0.06), 0);
     this.ilonka.setVisible(false);
     this.add(this.ilonka.root);
     this.ilonkaFood = new THREE.Group();
@@ -563,7 +574,7 @@ export class Lakotelep implements GameLevel {
           this.ilonkaFood.visible = false;
           await this.script.say('Ilonka néni', 'Na, ugye. Most menj haza, mielőtt megfázol.');
           this.ilonka.setVisible(false);
-          this.ilonkaWindow.visible = true;
+          this.setIlonkaOpen(false);
         });
       },
     });
@@ -648,7 +659,7 @@ export class Lakotelep implements GameLevel {
     const s = this.script;
     this.flags.ilonka = true;
     await s.wait(0.8);
-    this.ilonkaWindow.visible = false;
+    this.setIlonkaOpen(true);
     this.ilonka.setVisible(true);
     this.ilonka.lookTarget = this.cat().root.position;
     this.ilonka.talking = true;
@@ -664,7 +675,10 @@ export class Lakotelep implements GameLevel {
     this.flags.sign1 = true;
     await this.script.wait(1.1);
     this.dialogue.showHint('Bori festéke. <b>Friss</b> — nemrég járt itt.', 4000);
+    // Sniffed late (sign #2 already found)? Just count it — never rewind the story.
+    if (this.stage !== 'intro' && this.stage !== 'descend' && this.stage !== 'courtyard') return;
     await this.script.wait(1.5);
+    if (this.stage !== 'intro' && this.stage !== 'descend' && this.stage !== 'courtyard') return;
     this.stage = 'garage';
     this.dialogue.showCard('2 — Garázssor', '20:52');
     await this.script.wait(3);
@@ -997,7 +1011,7 @@ export class Lakotelep implements GameLevel {
     this.nudged = false;
     this.lastSafe.set(-4.5, 6, -13.4);
     (this.borisWindow.material as THREE.MeshBasicMaterial).map = this.boriLit;
-    this.ilonkaWindow.visible = true;
+    this.setIlonkaOpen(false);
     this.ilonka.setVisible(false);
     this.ilonkaFood.visible = false;
     const cat = this.cat();
